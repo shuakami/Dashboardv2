@@ -1,4 +1,4 @@
-import { ComponentProps } from "react"
+import {ComponentProps, useEffect} from "react"
 import formatDistanceToNow from "date-fns/formatDistanceToNow"
 
 import { cn } from "@/lib/utils"
@@ -15,6 +15,20 @@ interface MailListProps {
 export function MailList({ items }: MailListProps) {
   const [mail, setMail] = useMail()
 
+  // 实现选择记忆
+  useEffect(() => {
+    // 页面加载时从 localStorage 获取之前选中的邮件ID
+    const savedMailId = localStorage.getItem('selectedMailId');
+    if (savedMailId) {
+      // 更新选中的邮件状态
+      setMail({
+        ...mail,
+        selected: savedMailId,
+      });
+    }
+  }, []);
+
+
   return (
     <ScrollArea className="h-screen">
       <div className="flex flex-col gap-2 p-4 pt-0">
@@ -25,12 +39,13 @@ export function MailList({ items }: MailListProps) {
               "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
               mail.selected === item.id && "bg-muted"
             )}
-            onClick={() =>
+            onClick={() => {
               setMail({
                 ...mail,
                 selected: item.id,
-              })
-            }
+              });
+              localStorage.setItem('selectedMailId', item.id); // 保存选中邮件的ID
+            }}
           >
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">

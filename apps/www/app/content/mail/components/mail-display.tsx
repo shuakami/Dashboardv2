@@ -1,53 +1,38 @@
 import addDays from "date-fns/addDays"
 import addHours from "date-fns/addHours"
 import format from "date-fns/format"
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import nextSaturday from "date-fns/nextSaturday"
-import { enUS, zhCN } from 'date-fns/locale'
+import {enUS, zhCN} from 'date-fns/locale'
 import ReactMarkdown from 'react-markdown';
-import { franc } from 'franc';
+import {franc} from 'franc';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/registry/new-york/ui/alert-dialog";
+import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,} from "lucide-react"
 
-import {
-  Archive,
-  ArchiveX,
-  Clock,
-  Forward,
-  MoreVertical,
-  Reply,
-  ReplyAll,
-  Trash2,
-} from "lucide-react"
-
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/registry/default/ui/dropdown-menu"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/registry/new-york/ui/avatar"
-import { Button } from "@/registry/new-york/ui/button"
-import { Calendar } from "@/registry/new-york/ui/calendar"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@/registry/new-york/ui/dropdown-menu"
-import { Label } from "@/registry/new-york/ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/registry/new-york/ui/popover"
-import { Separator } from "@/registry/new-york/ui/separator"
-import { Switch } from "@/registry/new-york/ui/switch"
-import { Textarea } from "@/registry/new-york/ui/textarea"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/registry/new-york/ui/tooltip"
-import { Mail } from "@/app/content/mail/data"
+import {DropdownMenuContent, DropdownMenuItem,} from "@/registry/default/ui/dropdown-menu"
+import {Avatar, AvatarFallback, AvatarImage,} from "@/registry/new-york/ui/avatar"
+import {Button} from "@/registry/new-york/ui/button"
+import {Calendar} from "@/registry/new-york/ui/calendar"
+import {DropdownMenu, DropdownMenuTrigger,} from "@/registry/new-york/ui/dropdown-menu"
+import {Label} from "@/registry/new-york/ui/label"
+import {Popover, PopoverContent, PopoverTrigger,} from "@/registry/new-york/ui/popover"
+import {Separator} from "@/registry/new-york/ui/separator"
+import {Switch} from "@/registry/new-york/ui/switch"
+import {Textarea} from "@/registry/new-york/ui/textarea"
+import {Tooltip, TooltipContent, TooltipTrigger,} from "@/registry/new-york/ui/tooltip"
+import {Mail} from "@/app/content/mail/data"
+import {useToast} from "@/registry/new-york/ui/use-toast"
+import {ToastAction} from "@/registry/new-york/ui/toast"
 
 interface MailDisplayProps {
   mail: Mail | null
@@ -60,6 +45,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const userPrefLanguage = localStorage.getItem('userLanguage');
   const [text, setText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+  const [isTranslated, setIsTranslated] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast()
 
   let locale;
   switch(userPrefLanguage) {
@@ -77,13 +65,95 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     }
   }, [mail]);
 
+  useEffect(() => {
+    const checkAndDisplayTranslation = async () => {
+      if (mail && mail.text) {
+        // 生成当前邮件内容的哈希值
+        const contentHash = await generateHash(mail.text);
+        // 检查localStorage中是否已有该邮件的翻译
+        const cachedTranslation = localStorage.getItem(contentHash);
+        // 如果找到缓存的翻译，则更新translatedText状态，并设置isTranslated为true
+        if (cachedTranslation) {
+          setTranslatedText(cachedTranslation);
+          setIsTranslated(true);
+        } else {
+          // 如果没有找到缓存的翻译，重置translatedText状态，并设置isTranslated为false
+          setTranslatedText('');
+          setIsTranslated(false);
+        }
+      } else {
+        // 如果没有邮件内容，重置translatedText和isTranslated状态
+        setTranslatedText('');
+        setIsTranslated(false);
+      }
+    };
+
+    // 每次mail对象更新时执行检查并显示翻译
+    checkAndDisplayTranslation();
+  }, [mail]); // 依赖项数组中包含mail，以便于mail变化时重新执行效果
   const isChinese = () => {
     if (!mail || !mail.text) return false;
     const langCode = franc(mail.text);
     return langCode === 'cmn'; // 'cmn' 是汉语的代码
   };
 
+// 引入用于生成哈希的函数
+  async function generateHash(content: string | undefined) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const handleUpdateTranslation = async () => {
+    if (!mail || !mail.text) return;
+    // 生成当前邮件内容的哈希值
+    const contentHash = await generateHash(mail.text);
+    // 从localStorage中删除对应的翻译缓存
+    localStorage.removeItem(contentHash);
+    // 清除当前显示的翻译内容
+    setTranslatedText('');
+    // 关闭对话框
+    setIsDialogOpen(false);
+    // 设置isTranslated为false
+    setIsTranslated(false);
+    // 调用翻译函数重新翻译邮件
+    await translateMail(mail.text);
+  };
+  // 删除翻译的，这个不讲了，差不多
+  const handleDeleteTranslation = async () => {
+    if (!mail || !mail.text) {
+      toast({
+        description: "我的傻瓜欸~这都没有内容🐱",
+      });
+      return;
+    }
+    if (!translatedText || !isTranslated) {
+      toast({
+        description: "我的傻瓜欸~这都没有翻译我怎么删🐋！！",
+      });
+      return;
+    }
+    const contentHash = await generateHash(mail.text);
+    localStorage.removeItem(contentHash);
+    setTranslatedText('');
+    setIsTranslated(false);
+    toast({
+      description: "宝贝！删啦🐳",
+    });
+  };
   const translateMail = async (mailContent: string) => {
+    // 生成邮件内容的哈希值
+    const contentHash = await generateHash(mailContent);
+    // 检查localStorage中是否已有翻译
+    const cachedTranslation = localStorage.getItem(contentHash);
+    if (cachedTranslation) {
+      setTranslatedText(cachedTranslation);
+      setIsTranslated(true); // 已有翻译，更新状态
+      return;
+    }
+
     const url = 'https://api.openai-hk.com/v1/chat/completions';
     const headers = {
       'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
@@ -92,16 +162,16 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
     const data = {
       model: 'gpt-3.5-turbo',
-      temperature: 0.8,
-      max_tokens: 1200,
+      temperature: 0.6,
+      max_tokens: 2200,
       top_p: 1,
       presence_penalty: 1,
       messages: [{
         role: 'system',
-        content: '翻译此内容为符合中国人母语习惯的中文：'
+        content: '将以下英文内容翻译成中文，并注意调整任何文化、语言、语序上的差异使之适应中国读者的习惯：'
       }, {
         role: 'user',
-        content: mailContent
+        content: mailContent //发内容
       }],
       stream: true,
     };
@@ -126,6 +196,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           parts.forEach(part => {
             if (part.trim() === 'data: [DONE]') {
               reader.cancel(); // 取消读取操作
+              toast({
+                description: "翻译完成",
+              });
               return;
             }
 
@@ -136,7 +209,17 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
                 if (json.choices && json.choices.length > 0 && json.choices[0].delta && json.choices[0].delta.content) {
                   const text = json.choices[0].delta.content;
-                  setTranslatedText(prevText => prevText + text);
+                  setTranslatedText(prevText => {
+                    // 首先更新状态以反映新的翻译文本
+                    const newText = prevText + text;
+
+                    // 然后，将翻译后的文本与其哈希值一起保存到localStorage
+                    localStorage.setItem(contentHash, newText);
+                    setIsTranslated(true); // 更新状态为已翻译
+
+                    // 最后返回更新后的文本，以更新组件状态
+                    return newText;
+                  });
                 }
               } catch (e) {
                 console.error('Error parsing chunk', e);
@@ -148,13 +231,34 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       }
     } catch (error) {
       console.error('翻译邮件时出错:', error);
+      toast({
+        title: "OMG 是bug时刻！",
+        description: "Sorry宝贝！好像API有点小问题，要不要重试一下？😿",
+        duration: 5000,
+        action: <ToastAction onClick={handleUpdateTranslation} altText="Try again">重试</ToastAction>,
+      });
+      setTimeout(() => {
+        toast({
+          title: "上传日志",
+          description: "宝贝！上传日志可以更好的解决问题哦！😿",
+          duration: 5000,
+          action: <ToastAction  altText="Upload logs">上传日志</ToastAction>,
+        });
+      }, 6000);
     }
   }
 
 
-  const handleTranslateClick = async () => {
-    if (!mail || !mail.text) return;
-    await translateMail(mail.text);
+  const handleTranslateClick = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault(); // 阻止链接默认行为
+    if (isTranslated) {
+      // 如果已翻译，询问是否更新
+      setIsDialogOpen(true); // 打开对话框
+    } else {
+      // 如果未翻译，直接翻译
+      // @ts-ignore
+      await translateMail(mail.text);
+    }
   };
 
   const handleButtonPress = () => {
@@ -178,13 +282,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   }, [pressTimer]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col overflow-hidden">
+
       <div className="flex items-center p-2">
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <Archive className="h-4 w-4" />
+                <Archive className="h-4 w-4"/>
                 <span className="sr-only">Archive</span>
               </Button>
             </TooltipTrigger>
@@ -193,7 +298,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <ArchiveX className="h-4 w-4" />
+                <ArchiveX className="h-4 w-4"/>
                 <span className="sr-only">Move to junk</span>
               </Button>
             </TooltipTrigger>
@@ -202,19 +307,19 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4"/>
                 <span className="sr-only">Move to trash</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>删了</TooltipContent>
           </Tooltip>
-          <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator orientation="vertical" className="mx-1 h-6"/>
           <Tooltip>
             <Popover>
               <PopoverTrigger asChild>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" disabled={!mail}>
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-4 w-4"/>
                     <span className="sr-only">Snooze</span>
                   </Button>
                 </TooltipTrigger>
@@ -262,7 +367,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   </div>
                 </div>
                 <div className="p-2">
-                  <Calendar />
+                  <Calendar/>
                 </div>
               </PopoverContent>
             </Popover>
@@ -273,7 +378,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <Reply className="h-4 w-4" />
+                <Reply className="h-4 w-4"/>
                 <span className="sr-only">Reply</span>
               </Button>
             </TooltipTrigger>
@@ -282,7 +387,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <ReplyAll className="h-4 w-4" />
+                <ReplyAll className="h-4 w-4"/>
                 <span className="sr-only">Reply all</span>
               </Button>
             </TooltipTrigger>
@@ -291,22 +396,23 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!mail}>
-                <Forward className="h-4 w-4" />
+                <Forward className="h-4 w-4"/>
                 <span className="sr-only">Forward</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>转发</TooltipContent>
           </Tooltip>
         </div>
-        <Separator orientation="vertical" className="mx-2 h-6" />
+        <Separator orientation="vertical" className="mx-2 h-6"/>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" disabled={!mail}>
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className="h-4 w-4"/>
               <span className="sr-only">其他</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleDeleteTranslation}>🌐 删除翻译</DropdownMenuItem>
             <DropdownMenuItem>🤺 标为未读</DropdownMenuItem>
             <DropdownMenuItem>⭐ 星标一下</DropdownMenuItem>
             <DropdownMenuItem>🚫 把它屏蔽</DropdownMenuItem>
@@ -315,7 +421,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <Separator />
+      <Separator/>
       {mail ? (
         <div className="flex flex-1 flex-col">
           <div className="flex items-start justify-between p-4">
@@ -343,12 +449,33 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 {!isChinese() && (
                   <a href="#" onClick={handleTranslateClick}
                      className="cursor-pointer text-xs text-blue-600 hover:text-blue-800">
-                    翻译此邮件
+                    {isTranslated ? '更新翻译' : '翻译此邮件'}
                   </a>
                 )}
               </div>
             </div>
           </div>
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <button className="hidden">Open</button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>更新翻译</AlertDialogTitle>
+                <AlertDialogDescription>
+                  是否确实要更新这封邮件的翻译？此操作将重新翻译邮件内容。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel asChild>
+                  <Button className="text-black dark:text-white" onClick={() => setIsDialogOpen(false)}>取消</Button>
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button onClick={handleUpdateTranslation}>更新翻译</Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Separator/>
           <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
             {mail.text}
