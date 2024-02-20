@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 importers:
 
   .:
@@ -300,8 +296,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0(@types/react-dom@18.2.4)(@types/react@18.2.7)(react-dom@18.2.0)(react@18.2.0)
       zod:
-        specifier: ^3.21.4
-        version: 3.21.4
+        specifier: ^3.22.3
+        version: 3.22.3
     devDependencies:
       '@types/lodash.template':
         specifier: ^4.5.1
@@ -1209,7 +1205,7 @@ packages:
       ts-pattern: 4.3.0
       unified: 10.1.2
       yaml: 2.3.1
-      zod: 3.21.4
+      zod: 3.22.3
     transitivePeerDependencies:
       - '@effect-ts/otel-node'
       - esbuild
@@ -11486,9 +11482,13 @@ packages:
     resolution: {integrity: sha512-8SkgawHcA0RUbMrnhxbaQkZDBi8rMed8pQHixkFF9w32zGhAwZ9/cOHWlpYfr6RCx42Yp3siV45/jPEkJxsk6w==}
     dev: false
 
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
+  /zod@3.22.3:
+    resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
     dev: false
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
