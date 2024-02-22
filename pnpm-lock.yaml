@@ -80,6 +80,9 @@ importers:
       husky:
         specifier: ^8.0.3
         version: 8.0.3
+      isEqual:
+        specifier: ^1.0.3
+        version: 1.0.3
       postcss:
         specifier: ^8.4.24
         version: 8.4.24
@@ -107,6 +110,9 @@ importers:
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
       vite-tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0(typescript@4.9.5)
@@ -7200,6 +7206,10 @@ packages:
       is-docker: 2.2.1
     dev: false
 
+  /isEqual@1.0.3:
+    resolution: {integrity: sha512-NHSU4dnKPsIrtqaRglmnteuIsFU6H9WOvc74p75h8Yeb9pBGaZw3ZXYnJtCtKAGah2DkDakMfdPVapTcrB+rHQ==}
+    dev: false
+
   /isarray@2.0.5:
     resolution: {integrity: sha512-xHjhDr3cNBK0BzdUJSPXZntQUx/mwMS5Rw4A7lPJ90XGAO6ISP/ePDNuo0vhqOZU+UD5JoodwCAAoZQd3FeAKw==}
     dev: false
@@ -11000,6 +11010,11 @@ packages:
 
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: false
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
     dev: false
 

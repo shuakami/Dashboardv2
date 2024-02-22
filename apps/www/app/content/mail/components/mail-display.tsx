@@ -5,7 +5,10 @@ import React, {useEffect, useState} from 'react';
 import nextSaturday from "date-fns/nextSaturday"
 import {enUS, zhCN} from 'date-fns/locale'
 import ReactMarkdown from 'react-markdown';
+import sendMail from './send';
 import {franc} from 'franc';
+import { Skeleton } from "@/registry/new-york/ui/skeleton"
+import {archiveMail} from './archive'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/registry/new-york/ui/alert-dialog";
-import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,} from "lucide-react"
+import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
 
 import {DropdownMenuContent, DropdownMenuItem,} from "@/registry/default/ui/dropdown-menu"
 import {Avatar, AvatarFallback, AvatarImage,} from "@/registry/new-york/ui/avatar"
@@ -33,10 +36,13 @@ import {Tooltip, TooltipContent, TooltipTrigger,} from "@/registry/new-york/ui/t
 import {Mail} from "@/app/content/mail/data"
 import {useToast} from "@/registry/new-york/ui/use-toast"
 import {ToastAction} from "@/registry/new-york/ui/toast"
+import {ReloadIcon} from "@radix-ui/react-icons";
+import {useMail} from "@/app/content/mail/use-mail";
 
 interface MailDisplayProps {
   mail: Mail | null
 }
+
 
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date()
@@ -48,6 +54,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [isTranslated, setIsTranslated] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false);
+  const { mails, refreshMails } = useMail();
 
   let locale;
   switch(userPrefLanguage) {
@@ -248,6 +256,45 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     }
   }
 
+  const handleSendMailClick = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    setIsLoading(true); // 开始加载
+    const currentText = text; // 从 useState 获取当前文本
+
+    // @ts-ignore
+    const mailOptions: MailOptions = {
+      text: currentText,
+      emailAddress: mail?.email,
+
+      isReplyFromHomepage: true,
+      currentViewingMailTitle: mail?.subject, // 使用当前邮件的主题作为回复主题
+    };
+
+    const callback = (success: boolean) => {
+      if (success) {
+        console.log("邮件发送成功");
+        setText(''); // 清空文本输入
+        toast({
+          title: "发送成功",
+          description: "宝贝！发送成功啦🎉",
+        });
+      } else {
+        console.log("邮件发送失败");
+        setText(currentText); // 发送失败时，恢复之前的文本
+        toast({
+          title: "OMG 是bug时刻！",
+          description: "Sorry宝贝！好像API有点小问题，要不要重试一下？😿",
+          duration: 5000,
+          action: <ToastAction onClick={() => handleSendMailClick(e)} altText="Try again">重试</ToastAction>,
+        });
+      }
+      setIsLoading(false); // 结束加载
+    };
+
+    await sendMail(mailOptions, callback);
+  };
+
+
 
   const handleTranslateClick = async (e: { preventDefault: () => void; }) => {
     e.preventDefault(); // 阻止链接默认行为
@@ -269,6 +316,63 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     setPressTimer(timer);
   };
 
+  // 归档
+  const handleArchiveClick = async () => {
+    if (mail) {
+      await archiveMail(mail.id, true, async (success) => {
+        if (success) {
+          await refreshMails();
+          toast({
+            title: "归档成功",
+            description: "宝贝！已归档🎉",
+          });
+          // 检查并可能清除本地存储中的selectedMailId
+          const selectedMailId = localStorage.getItem('selectedMailId');
+          if (selectedMailId && selectedMailId === mail.id.toString()) {
+            localStorage.removeItem('selectedMailId'); // 清除选中邮件ID
+          }
+        } else {
+          toast({
+            title: "OMG 是bug时刻！",
+            description: "Sorry宝贝！好像API有点小问题，要不要重试一下？😿",
+            action: <ToastAction onClick={handleArchiveClick} altText="Try again">重试</ToastAction>,
+          });
+        }
+      });
+    } else {
+      console.log('没有选中的邮件或缺少必要信息');
+      toast({
+        title: "宝贝！",
+        description: "你没有选中邮件，或者缺少必要信息哦q(≧▽≦q)🥟",
+        action: <ToastAction onClick={handleArchiveClick} altText="Try again">重试</ToastAction>,
+      });
+    }
+  };
+  const unarchiveMail = (id: string) => {
+    // 调用archiveMail函数，将archive参数设置为false来取消归档
+    setIsLoading(true); // 开始加载
+    archiveMail(id, false, async (success) => {
+      if (success) {
+        await refreshMails();
+        setIsLoading(false);
+        toast({
+          title: "取消归档成功",
+          description: "宝贝！已取消啦！🎉",
+        });
+
+      } else {
+        setIsLoading(false);
+        toast({
+          title: "OMG 是bug时刻！",
+          description: "Sorry宝贝！好像API有点小问题，要不要重试一下？😿",
+          // @ts-ignore
+          action: <ToastAction onClick={unarchiveMail} altText="Try again">重试</ToastAction>,
+        });
+      }
+    });
+  };
+
+
   const handleButtonRelease = () => {
     // @ts-ignore
     clearTimeout(pressTimer); // 如果用户在2秒内释放按钮，则清除定时器
@@ -283,12 +387,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-
       <div className="flex items-center p-2">
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
+              <Button onClick={handleArchiveClick} variant="ghost" size="icon" disabled={!mail} >
                 <Archive className="h-4 w-4"/>
                 <span className="sr-only">Archive</span>
               </Button>
@@ -477,19 +580,40 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </AlertDialogContent>
           </AlertDialog>
           <Separator/>
-          <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-            {mail.text}
-            <br></br>
-            {translatedText && (
+
+          {mail && mail.archive ? (
+            <div className="flex h-full flex-col items-center justify-center">
+              <h2 className="mt-10 scroll-m-20 pb-2 text-2xl font-semibold tracking-tight transition-colors first:mt-0">您已经归档啦~</h2>
+              {isLoading ? (
+                <Button disabled variant="outline">
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                  取消归档中
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => unarchiveMail(mail.id)}>
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  取消归档
+                </Button>
+              )}
+            </div>
+          ) : (
               <>
+              <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
+                {mail.text}
                 <br></br>
-                <br></br>
-                <ReactMarkdown>{translatedText}</ReactMarkdown>
-                <br></br>
-                *翻译由人工智能生成 准确性请自行确认
+                {translatedText && (
+                  <>
+                    <br></br>
+                    <br></br>
+                    <ReactMarkdown>{translatedText}</ReactMarkdown>
+                    <br></br>
+                    *翻译由人工智能生成 准确性请自行确认
+                  </>
+                )}
+              </div>
               </>
             )}
-          </div>
+
           <Separator className="mt-auto"/>
           <div className="p-4">
             <form>
@@ -497,16 +621,16 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 <Textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="p-4"
-                  placeholder={`回复 ${mail.name}...
-*支持Markdown格式`}
+                  className={`p-4 ${mail && mail.archive ? 'bg-gray-200 text-gray-500' : ''}`}
+                  placeholder={`回复 ${mail ? mail.name : ''}...`}
+                  disabled={mail && mail.archive} // 根据邮件是否归档禁用输入
                 />
                 <ReactMarkdown>{text}</ReactMarkdown>
                 <div className="flex items-center">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Label htmlFor="mute" className="flex cursor-pointer items-center gap-2 text-xs font-normal">
-                        <Switch id="mute" aria-label="Mute thread"/>
+                      <Label htmlFor="mute" className={`flex cursor-pointer items-center gap-2 text-xs font-normal ${mail && mail.archive ? 'text-gray-500' : ''}`}>
+                        <Switch id="mute" aria-label="Mute thread" disabled={mail && mail.archive}/> {/* 根据邮件是否归档禁用开关 */}
                         采用更安全的发送方式
                       </Label>
                     </TooltipTrigger>
@@ -516,14 +640,23 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   </Tooltip>
 
                   <Button
-                    onMouseDown={handleButtonPress} // 鼠标按下事件
-                    onMouseUp={handleButtonRelease} // 鼠标释放事件
-                    onTouchStart={handleButtonPress} // 触摸开始事件，支持移动设备
-                    onTouchEnd={handleButtonRelease} // 触摸结束事件，支持移动设备
+                    onMouseDown={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除按下事件处理
+                    onMouseUp={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除释放事件处理
+                    onTouchStart={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除触摸开始事件处理
+                    onTouchEnd={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除触摸结束事件处理
                     size="sm"
-                    className="ml-auto"
+                    className={`ml-auto ${mail && mail.archive ? 'cursor-not-allowed bg-gray-300 text-gray-500' : ''}`}
+                    onClick={mail && mail.archive ? undefined : handleSendMailClick} // 如果邮件归档，移除点击事件处理
+                    disabled={mail && mail.archive || isLoading} // 如果邮件归档或正在加载，禁用按钮
                   >
-                    {buttonText} {/* 使用状态变量来显示按钮文本 */}
+                    {isLoading ? (
+                      <>
+                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin"/>
+                        发送中
+                      </>
+                    ) : (
+                      buttonText
+                    )}
                   </Button>
                 </div>
               </div>
@@ -532,7 +665,33 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         </div>
       ) : (
         <div className="p-8 text-center text-muted-foreground">
-          No message selected
+          <div className="relative flex h-full flex-col overflow-hidden">
+            <Separator/>
+            <div className="flex items-center p-4">
+              <Skeleton className="h-12 w-12 rounded-full"/>
+              <div className="ml-4 flex-1">
+                <Skeleton className="h-6 w-48 "/>
+                <Skeleton className="mt-4 h-4 w-full"/>
+                <Skeleton className="mt-4 h-4 w-2/3"/>
+              </div>
+            </div>
+            <Separator/>
+            <div className="flex-1 p-4">
+              <Skeleton className="h-full"/>
+            </div>
+            <Separator className="mt-auto"/>
+            <div className="p-4">
+              <Skeleton className="mt-4 h-20 w-full"/>
+              <Skeleton className="mt-4 h-20 w-full"/>
+              <Skeleton className="mt-4 h-20 w-full"/> {/* Textarea */}
+              <div className="mt-4 flex justify-end">
+                <Skeleton className="mt-4 h-10 w-24"/>
+                <div className="relative mt-10 flex h-full flex-col overflow-hidden">
+                No message selected<br></br>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

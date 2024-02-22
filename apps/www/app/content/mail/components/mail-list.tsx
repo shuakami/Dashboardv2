@@ -13,35 +13,26 @@ interface MailListProps {
 }
 
 export function MailList({ items }: MailListProps) {
-  const [mail, setMail] = useMail()
+  const { config, setConfig, mails } = useMail();
+ // console.log('原始邮件列表:', items.map(item => ({ id: item.id, archive: item.archive })));
 
-  // 实现选择记忆
-  useEffect(() => {
-    // 页面加载时从 localStorage 获取之前选中的邮件ID
-    const savedMailId = localStorage.getItem('selectedMailId');
-    if (savedMailId) {
-      // 更新选中的邮件状态
-      setMail({
-        ...mail,
-        selected: savedMailId,
-      });
-    }
-  }, []);
+  const filteredItems = items.filter((item) => !item.archive);
 
+ // console.log('过滤后的邮件列表:', filteredItems.map(item => ({ id: item.id, archive: item.archive })));
 
   return (
     <ScrollArea className="h-screen">
       <div className="flex flex-col gap-2 p-4 pt-0">
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <button
             key={item.id}
             className={cn(
               "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
-              mail.selected === item.id && "bg-muted"
+              config.selected === item.id && "bg-muted"
             )}
             onClick={() => {
-              setMail({
-                ...mail,
+              setConfig({
+                ...config,
                 selected: item.id,
               });
               localStorage.setItem('selectedMailId', item.id); // 保存选中邮件的ID
@@ -58,7 +49,7 @@ export function MailList({ items }: MailListProps) {
                 <div
                   className={cn(
                     "ml-auto text-xs",
-                    mail.selected === item.id
+                    config.selected === item.id
                       ? "text-foreground"
                       : "text-muted-foreground"
                   )}
@@ -92,11 +83,11 @@ export function MailList({ items }: MailListProps) {
 function getBadgeVariantFromLabel(
   label: string
 ): ComponentProps<typeof Badge>["variant"] {
-  if (["work"].includes(label.toLowerCase())) {
+  if (["发神经"].includes(label.toLowerCase())) {
     return "default"
   }
 
-  if (["personal"].includes(label.toLowerCase())) {
+  if (["shuakami的碎碎念"].includes(label.toLowerCase())) {
     return "outline"
   }
 

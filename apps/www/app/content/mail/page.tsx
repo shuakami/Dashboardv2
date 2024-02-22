@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import Image from "next/image"
 
 import { Mail } from "@/app/content/mail/components/mail"
+// @ts-ignore
 import { accounts, mails } from "@/app/content/mail/data"
 import React from "react";
 
@@ -17,12 +18,11 @@ export default function MailPage() {
       <div className="md:hidden">
 
       </div>
-      <div className=" md:flex">
         <div className="relative flex h-full flex-col overflow-hidden">
           {/* 白色主题视频 */}
           <video autoPlay loop muted
                  className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden"
-                 style={{filter: 'blur(80px)', objectFit: 'cover'}}>
+                 style={{filter: 'blur(70px)', objectFit: 'cover'}}>
             <source src="/vid/backgroundwhite.mp4" type="video/mp4"/>
             Your browser does not support the video tag.
           </video>
@@ -46,7 +46,6 @@ export default function MailPage() {
             />
           </div>
         </div>
-      </div>
     </>
   )
 }

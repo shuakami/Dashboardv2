@@ -24,7 +24,7 @@ import { AccountSwitcher } from "@/app/content/mail/components/account-switcher"
 import { MailDisplay } from "@/app/content/mail/components/mail-display"
 import { MailList } from "@/app/content/mail/components/mail-list"
 import { Nav } from "@/app/content/mail/components/nav"
-import { Mail } from "@/app/content/mail/data"
+import { Mail as MailType } from "@/app/content/mail/data" // 注意避免与Mail组件同名
 import { useMail } from "@/app/content/mail/use-mail"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/registry/new-york/ui/separator"
@@ -44,21 +44,23 @@ interface MailProps {
     email: string
     icon: React.ReactNode
   }[]
-  mails: Mail[]
+  mails: MailType[]
   defaultLayout: number[] | undefined
   defaultCollapsed?: boolean
   navCollapsedSize: number
 }
 
+
 export function Mail({
-  accounts,
-  mails,
-  defaultLayout = [265, 440, 655],
-  defaultCollapsed = false,
-  navCollapsedSize,
-}: MailProps) {
+                       accounts,
+                       mails: mailsProp, // 更改名称以避免与useMail钩子的mails冲突
+                       defaultLayout = [265, 440, 655],
+                       defaultCollapsed = false,
+                       navCollapsedSize,
+                     }: MailProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
-  const [mail] = useMail()
+  // 正确地解构useMail钩子返回的对象
+  const { config, setConfig, mails } = useMail() // 修正了这里
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -69,14 +71,14 @@ export function Mail({
             sizes
           )}`
         }}
-        className="h-full max-h-[940px] items-stretch"
+        className="h-full max-h-[940px] items-stretch "
       >
         <ResizablePanel
-          defaultSize={defaultLayout[0]}
+          defaultSize={defaultLayout[14]}
           collapsedSize={navCollapsedSize}
           collapsible={true}
           minSize={9}
-          maxSize={18}
+          maxSize={16}
           onCollapse={(collapsed) => {
             setIsCollapsed(collapsed)
             document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
@@ -197,7 +199,7 @@ export function Mail({
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={defaultLayout[2]}>
           <MailDisplay
-            mail={mails.find((item) => item.id === mail.selected) || null}
+            mail={mails.find((item) => item.id === config.selected) || null}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
