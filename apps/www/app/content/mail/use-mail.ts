@@ -1,6 +1,7 @@
 import { atom, useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchMails, Mail } from '@/app/content/mail/data';
+
 // @ts-ignore
 import isEqual from 'lodash/isEqual';
 
@@ -17,21 +18,16 @@ export function useMail() {
   const [mails, setMails] = useState<Mail[]>([]);
 
   const refreshMails = async () => {
-    console.debug('Refreshing mails...');
-    // 延时300毫秒后再刷新邮件列表，以模拟异步等待效果
-    await new Promise(resolve => setTimeout(resolve, 300));
+    location.reload ()
     const fetchedMails = await fetchMails();
-    if (!isEqual(mails, fetchedMails)) {
-      console.debug('New mails fetched on refresh, updating state...');
-      setMails(fetchedMails);
-    }
+    // 无条件更新状态，不检查是否有变化
+    setMails(fetchedMails);
   };
 
+
   const loadAndSetMails = async () => {
-    console.debug('Loading mails...');
     const fetchedMails = await fetchMails();
-    if (!isEqual(mails, fetchedMails)) {
-      console.debug('New mails fetched, updating state...');
+    if (!isEqual(mails, fetchedMails)) { // 仅在数据变化时更新
       setMails(fetchedMails);
 
       const selectedMailId = localStorage.getItem('selectedMailId');
@@ -46,9 +42,11 @@ export function useMail() {
 
   useEffect(() => {
     loadAndSetMails(); // 初始加载
+
     const interval = setInterval(loadAndSetMails, 3000); // 定期检查更新
+
     return () => clearInterval(interval); // 清理
   }, [mails, setConfig, setMails]);
 
-  return { config, setConfig, mails, refreshMails };
+  return { config, setConfig, mails, refreshMails,loadAndSetMails };
 }

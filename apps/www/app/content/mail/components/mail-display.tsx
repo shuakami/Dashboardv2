@@ -353,13 +353,13 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     setIsLoading(true); // 开始加载
     archiveMail(id, false, async (success) => {
       if (success) {
-        await refreshMails();
-        setIsLoading(false);
         toast({
           title: "取消归档成功",
           description: "宝贝！已取消啦！🎉",
         });
-
+        location.reload ()
+        await refreshMails();
+        setIsLoading(false);
       } else {
         setIsLoading(false);
         toast({
