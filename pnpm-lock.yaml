@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 importers:
 
   .:
@@ -1809,7 +1805,7 @@ packages:
       '@types/long': 4.0.2
       lodash.camelcase: 4.3.0
       long: 4.0.0
-      protobufjs: 7.2.3
+      protobufjs: 7.2.6
       yargs: 17.7.2
     dev: false
 
@@ -2191,7 +2187,7 @@ packages:
       '@opentelemetry/api': 1.4.1
       '@opentelemetry/core': 1.13.0(@opentelemetry/api@1.4.1)
       '@opentelemetry/otlp-exporter-base': 0.39.1(@opentelemetry/api@1.4.1)
-      protobufjs: 7.2.3
+      protobufjs: 7.2.6
     dev: false
 
   /@opentelemetry/otlp-transformer@0.39.1(@opentelemetry/api@1.4.1):
@@ -9222,8 +9218,8 @@ packages:
   /property-information@6.2.0:
     resolution: {integrity: sha512-kma4U7AFCTwpqq5twzC1YVIDXSqg6qQK6JN0smOw8fgRy1OkMi0CYSzFmsy6dnqSenamAtj0CyXMUJ1Mf6oROg==}
 
-  /protobufjs@7.2.3:
-    resolution: {integrity: sha512-TtpvOqwB5Gdz/PQmOjgsrGH1nHjAQVCN7JG4A6r1sXRWESL5rNMAiRcBQlCAdKxZcAbstExQePYG8xof/JVRgg==}
+  /protobufjs@7.2.6:
+    resolution: {integrity: sha512-dgJaEDDL6x8ASUZ1YqWciTRrdOuYNzoOf27oHNfdyvKqHr5i0FV7FSLU+aIeFjyFgVxrpTOtQUi0BLLBymZaBw==}
     engines: {node: '>=12.0.0'}
     requiresBuild: true
     dependencies:
@@ -11507,3 +11503,7 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
