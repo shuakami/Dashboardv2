@@ -18,7 +18,6 @@ export function useMail() {
   const [mails, setMails] = useState<Mail[]>([]);
 
   const refreshMails = async () => {
-    location.reload ()
     const fetchedMails = await fetchMails();
     // 无条件更新状态，不检查是否有变化
     setMails(fetchedMails);
@@ -43,7 +42,7 @@ export function useMail() {
   useEffect(() => {
     loadAndSetMails(); // 初始加载
 
-    const interval = setInterval(loadAndSetMails, 3000); // 定期检查更新
+    const interval = setInterval(loadAndSetMails, 5000); // 定期检查更新
 
     return () => clearInterval(interval); // 清理
   }, [mails, setConfig, setMails]);

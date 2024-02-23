@@ -61,7 +61,15 @@ export function Mail({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
   // 正确地解构useMail钩子返回的对象
   const { config, setConfig, mails } = useMail() // 修正了这里
+  const [searchQuery, setSearchQuery] = React.useState('');
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+  const filteredMails = mails.filter((mail) =>
+    mail.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mail.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
@@ -184,15 +192,20 @@ export function Mail({
               <form>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search" className="pl-8" />
+                  <Input
+                    placeholder="Search"
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
                 </div>
               </form>
             </div>
             <TabsContent value="all" className="m-0">
-              <MailList items={mails} />
+              <MailList items={filteredMails} />
             </TabsContent>
             <TabsContent value="unread" className="m-0">
-              <MailList items={mails.filter((item) => !item.read)} />
+              <MailList items={filteredMails.filter((item) => !item.read)} />
             </TabsContent>
           </Tabs>
         </ResizablePanel>

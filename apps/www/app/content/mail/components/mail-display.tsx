@@ -1,5 +1,4 @@
 import addDays from "date-fns/addDays"
-import addHours from "date-fns/addHours"
 import format from "date-fns/format"
 import React, {useEffect, useState} from 'react';
 import nextSaturday from "date-fns/nextSaturday"
@@ -7,8 +6,10 @@ import {enUS, zhCN} from 'date-fns/locale'
 import ReactMarkdown from 'react-markdown';
 import sendMail from './send';
 import {franc} from 'franc';
+import { deleteMail } from './delete';
 import { Skeleton } from "@/registry/new-york/ui/skeleton"
 import {archiveMail} from './archive'
+import { ReportDrawer } from './report';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,9 @@ import {useToast} from "@/registry/new-york/ui/use-toast"
 import {ToastAction} from "@/registry/new-york/ui/toast"
 import {ReloadIcon} from "@radix-ui/react-icons";
 import {useMail} from "@/app/content/mail/use-mail";
+import axios from "axios";
+import {addMinutes, addWeeks, startOfDay} from "date-fns";
+import { DeleteSelectMailRead } from "@/app/content/mail/components/mail-list";
 
 interface MailDisplayProps {
   mail: Mail | null
@@ -56,6 +60,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false);
   const { mails, refreshMails } = useMail();
+  const [forceShowArchivedUI, setForceShowArchivedUI] = useState(false);
+  const [showReportDrawer, setShowReportDrawer] = useState(false);
 
   let locale;
   switch(userPrefLanguage) {
@@ -65,6 +71,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     default:
       locale = enUS;
   }
+
+  const handleCloseDrawer = () => {
+    setShowReportDrawer(false); // 用于关闭Drawer
+  };
 
   useEffect(() => {
     // 当mail prop发生变化时，清空已翻译的内容
@@ -104,6 +114,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     const langCode = franc(mail.text);
     return langCode === 'cmn'; // 'cmn' 是汉语的代码
   };
+
+
 
 // 引入用于生成哈希的函数
   async function generateHash(content: string | undefined) {
@@ -316,11 +328,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     setPressTimer(timer);
   };
 
+
+  useEffect(() => {
+    if (mail && mail.archive) {
+      setForceShowArchivedUI(true);
+    }
+  }, [mail]);
+
   // 归档
   const handleArchiveClick = async () => {
     if (mail) {
       await archiveMail(mail.id, true, async (success) => {
         if (success) {
+          setForceShowArchivedUI(true);
+
           await refreshMails();
           toast({
             title: "归档成功",
@@ -353,13 +374,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     setIsLoading(true); // 开始加载
     archiveMail(id, false, async (success) => {
       if (success) {
+        setIsLoading(false);
+        setForceShowArchivedUI(false);
         toast({
           title: "取消归档成功",
           description: "宝贝！已取消啦！🎉",
         });
-        location.reload ()
+        location.reload();
         await refreshMails();
-        setIsLoading(false);
       } else {
         setIsLoading(false);
         toast({
@@ -371,6 +393,112 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       }
     });
   };
+
+  const handleDeleteClick = async () => {
+    if (mail && mail.id) {
+      // 保存被删除邮件的内容到localStorage
+      localStorage.setItem(`deletedMail_${mail.id}`, JSON.stringify(mail));
+      await deleteMail(mail.id, (success) => {
+        if (success) {
+          console.log("邮件已删除");
+          localStorage.setItem('postReloadMessage', JSON.stringify({
+            title: "删除成功",
+            description: "宝贝！已经删除啦！🎉",
+          }));
+          toast({
+            title: "删除成功",
+            description: "宝贝！已经删除啦！🎉",
+            action: <ToastAction onClick={() => restoreDeletedMail(mail.id)} altText="Undo deletion">撤销删除</ToastAction>,
+          });
+        } else {
+          console.error("删除失败");
+          toast({
+            title: "OMG 是bug时刻！",
+            description: "Sorry宝贝！好像API有点小问题，要不要重试一下？😿",
+            action: <ToastAction onClick={handleDeleteClick} altText="Try again">重试</ToastAction>,
+          });
+        }
+      });
+    }
+  };
+  async function restoreDeletedMail(mailId: string) {
+    const mailDataStr = localStorage.getItem(`deletedMail_${mailId}`);
+    if (!mailDataStr) {
+      console.error("未找到被删除的邮件数据");
+      return false;
+    }
+
+    const mailData = JSON.parse(mailDataStr);
+
+    // 构建POST请求的数据，确保数据结构与API期望的匹配
+    const postData = {
+      data: {
+          name: mailData.name,
+          subject: mailData.subject,
+          text: mailData.text,
+          date: mailData.date,
+          labels: mailData.labels.join(", "), // 将数组转换为逗号分隔的字符串
+          email: mailData.email,
+          CCID: mailData.CCID,
+      }
+    };
+
+    console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
+
+    try {
+      const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      console.log("邮件恢复成功", response.data);
+      toast({
+        title: "删除成功",
+        description: "宝贝！恢复成功啦！下次想好再删哦🎉",
+      });
+      localStorage.removeItem(`deletedMail_${mailId}`);
+
+      return true;
+    } catch (error) {
+      console.error("邮件恢复失败:", error);
+      return false;
+    }
+  }
+  const showArchivedUI = (mail && mail.archive || mail && forceShowArchivedUI) ;
+
+  const handleSetReminder = (time: string) => {
+    localStorage.setItem('reminderTime', time);
+    toast({
+      title: "提醒设置成功",
+      // @ts-ignore 注：此处多语言挖坑
+      description: `宝贝！已经设置提醒在${format(new Date(time), "E, MMMM d, h:mm a", { timeZone: 'UTC' })}。`,
+    });
+  };
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const reminderTimeString = localStorage.getItem('reminderTime');
+      if (reminderTimeString) {
+        const reminderTime = new Date(reminderTimeString);
+        const now = new Date();
+
+        //  console.log(`现在时间: ${now.toISOString()}`);
+        //  console.log(`提醒时间: ${reminderTime.toISOString()}`);
+        //  console.log(`是否到达提醒时间: ${reminderTime <= now}`);
+
+        if (reminderTime <= now) {
+          toast({
+            title: "你之前设置了提醒",
+            description: "宝贝！时间到啦🎉",
+          });
+       //   console.log("提醒弹出"); // 进一步的调试语句
+          localStorage.removeItem('reminderTime'); // 清除提醒
+        }
+      }
+    }, 60000);
+
+    return () => clearInterval(interval); // 清理定时器
+  }, []);
 
 
   const handleButtonRelease = () => {
@@ -385,6 +513,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     };
   }, [pressTimer]);
 
+  // @ts-ignore
+  // @ts-ignore
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
       <div className="flex items-center p-2">
@@ -409,7 +539,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
+              <Button onClick={handleDeleteClick} variant="ghost" size="icon" disabled={!mail}>
                 <Trash2 className="h-4 w-4"/>
                 <span className="sr-only">Move to trash</span>
               </Button>
@@ -434,38 +564,52 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                     <Button
                       variant="ghost"
                       className="justify-start font-normal"
+                      onClick={() => handleSetReminder(addMinutes(new Date(), 2).toISOString())} // 现在+2分钟
                     >
-                      明天晚点{" "}
+                      2分钟后
                       <span className="ml-auto text-muted-foreground">
-                        {format(addHours(today, 4), "E, h:m b")}
-                      </span>
+    {format(addMinutes(new Date(), 2), "E, h:mm a")}
+  </span>
                     </Button>
                     <Button
                       variant="ghost"
                       className="justify-start font-normal"
+                      onClick={() => handleSetReminder(addDays(new Date(), 1).toISOString())} // 明天的这个时候
+                    >
+                      明天晚点
+                      <span className="ml-auto text-muted-foreground">
+    {format(addDays(new Date(), 1), "E, h:m b")}
+  </span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start font-normal"
+                      onClick={() => handleSetReminder(startOfDay(addDays(new Date(), 1)).toISOString())} // 明天开始的时候
                     >
                       明天
                       <span className="ml-auto text-muted-foreground">
-                        {format(addDays(today, 1), "E, h:m b")}
-                      </span>
+    {format(startOfDay(addDays(new Date(), 1)), "E, h:m b")}
+  </span>
                     </Button>
                     <Button
                       variant="ghost"
                       className="justify-start font-normal"
+                      onClick={() => handleSetReminder(startOfDay(nextSaturday(new Date())).toISOString())} // 这个周末（周六开始的时候）
                     >
                       这个周末
                       <span className="ml-auto text-muted-foreground">
-                        {format(nextSaturday(today), "E, h:m b")}
-                      </span>
+    {format(nextSaturday(new Date()), "E, h:m b")}
+  </span>
                     </Button>
                     <Button
                       variant="ghost"
                       className="justify-start font-normal"
+                      onClick={() => handleSetReminder(startOfDay(addWeeks(new Date(), 1)).toISOString())} // 下周的开始时候
                     >
                       下周
                       <span className="ml-auto text-muted-foreground">
-                        {format(addDays(today, 7), "E, h:m b")}
-                      </span>
+    {format(addWeeks(new Date(), 1), "E, h:m b")}
+  </span>
                     </Button>
                   </div>
                 </div>
@@ -516,15 +660,22 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleDeleteTranslation}>🌐 删除翻译</DropdownMenuItem>
-            <DropdownMenuItem>🤺 标为未读</DropdownMenuItem>
+            <DropdownMenuItem onClick={DeleteSelectMailRead}>🤺 标为未读</DropdownMenuItem>
             <DropdownMenuItem>⭐ 星标一下</DropdownMenuItem>
             <DropdownMenuItem>🚫 把它屏蔽</DropdownMenuItem>
             <DropdownMenuItem>🐋 指定回复</DropdownMenuItem>
-            <DropdownMenuItem>⛔ 举报它</DropdownMenuItem>
+            <DropdownMenuItem >⛔ 举报它</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <Separator/>
+      {showReportDrawer && mail && (
+        <ReportDrawer
+          mail={{ title: mail.subject, content: mail.text }}
+          open={showReportDrawer}
+          onClose={handleCloseDrawer}
+        />
+      )}
       {mail ? (
         <div className="flex flex-1 flex-col">
           <div className="flex items-start justify-between p-4">
@@ -580,8 +731,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </AlertDialogContent>
           </AlertDialog>
           <Separator/>
-
-          {mail && mail.archive ? (
+          {showArchivedUI ? (
             <div className="flex h-full flex-col items-center justify-center">
               <h2 className="mt-10 scroll-m-20 pb-2 text-2xl font-semibold tracking-tight transition-colors first:mt-0">您已经归档啦~</h2>
               {isLoading ? (
@@ -599,7 +749,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           ) : (
               <>
               <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-                {mail.text}
+                <ReactMarkdown>{mail.text}</ReactMarkdown>
                 <br></br>
                 {translatedText && (
                   <>
@@ -613,7 +763,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               </div>
               </>
             )}
-
           <Separator className="mt-auto"/>
           <div className="p-4">
             <form>
@@ -625,12 +774,16 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   placeholder={`回复 ${mail ? mail.name : ''}...`}
                   disabled={mail && mail.archive} // 根据邮件是否归档禁用输入
                 />
-                <ReactMarkdown>{text}</ReactMarkdown>
+                <div style={{maxHeight: '100px', overflowX: 'auto'}}>
+                  <ReactMarkdown>{text}</ReactMarkdown>
+                </div>
                 <div className="flex items-center">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Label htmlFor="mute" className={`flex cursor-pointer items-center gap-2 text-xs font-normal ${mail && mail.archive ? 'text-gray-500' : ''}`}>
-                        <Switch id="mute" aria-label="Mute thread" disabled={mail && mail.archive}/> {/* 根据邮件是否归档禁用开关 */}
+                      <Label htmlFor="mute"
+                             className={`flex cursor-pointer items-center gap-2 text-xs font-normal ${mail && mail.archive ? 'text-gray-500' : ''}`}>
+                        <Switch id="mute" aria-label="Mute thread"
+                                disabled={mail && mail.archive}/> {/* 根据邮件是否归档禁用开关 */}
                         采用更安全的发送方式
                       </Label>
                     </TooltipTrigger>
@@ -638,7 +791,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       用于敏感信息发送 会使用更高的加密水平
                     </TooltipContent>
                   </Tooltip>
-
                   <Button
                     onMouseDown={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除按下事件处理
                     onMouseUp={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除释放事件处理
@@ -683,16 +835,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             <div className="p-4">
               <Skeleton className="mt-4 h-20 w-full"/>
               <Skeleton className="mt-4 h-20 w-full"/>
-              <Skeleton className="mt-4 h-20 w-full"/> {/* Textarea */}
-              <div className="mt-4 flex justify-end">
-                <Skeleton className="mt-4 h-10 w-24"/>
-                <div className="relative mt-10 flex h-full flex-col overflow-hidden">
-                No message selected<br></br>
-                </div>
+              <Skeleton className="mt-4 h-20 w-full"/>
               </div>
             </div>
           </div>
-        </div>
+
       )}
     </div>
   )

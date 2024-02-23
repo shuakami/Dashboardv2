@@ -36,7 +36,7 @@ export async function fetchMails(): Promise<Mail[]> {
     subject: mail.attributes.subject,
     text: mail.attributes.text,
     date: mail.attributes.date,
-    read: false, // Assuming all emails are unread initially; adjust as needed
+    read: mail.attributes.read, // Assuming all emails are unread initially; adjust as needed
     labels: mail.attributes.labels.split(','),
     archive: mail.attributes.archive === "true" ? true : false, // Convert "true" string to boolean
   }));
