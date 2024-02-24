@@ -47,7 +47,7 @@ export function MailList({ items }: MailListProps) {
     // 更新邮件的已读状态
     updateMailReadStatus(id, true, (success) => {
       if (success) {
-        console.log('邮件已读状态更新成功');
+      //  console.log('邮件已读状态更新成功');
       } else {
         console.log('邮件已读状态更新失败');
       }

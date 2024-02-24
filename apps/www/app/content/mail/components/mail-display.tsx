@@ -86,39 +86,55 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     setShowReportDrawer(false); // 用于关闭Drawer
   };
 
+  const handleOpenReportDrawer = () => {
+    setShowReportDrawer(true); // 打开报告抽屉
+  };
+
   const handleFormatClick = (format: string) => {
+    // 确保传入的格式化参数是有效的
     const markdownSymbols = {
       bold: '**',
       italic: '*',
-      underline: '~~', // Markdown没有官方的下划线格式，这里用删除线代替示例
+      underline: '~~', // 使用删除线代替下划线
     };
+
     // @ts-ignore
     const symbols = markdownSymbols[format];
-    if (!textareaRef.current) return;
-    // @ts-ignore
-    const start = textareaRef.current.selectionStart;
-    // @ts-ignore
-    const end = textareaRef.current.selectionEnd;
+    // 检查symbols是否有效
+    if (!symbols) {
+      console.error('Invalid format type:', format);
+      return;
+    }
+
+    if (!textareaRef.current) {
+      console.error('Textarea ref is not available');
+      return;
+    }
+
+    const { selectionStart: start, selectionEnd: end } = textareaRef.current;
+
+    // 确保start和end是有效的数字
+    if (typeof start !== 'number' || typeof end !== 'number') {
+      console.error('Invalid selection range');
+      return;
+    }
+
     const textBefore = text.substring(0, start);
     const textSelected = text.substring(start, end);
-    const textAfter = text.substring(end, text.length);
+    const textAfter = text.substring(end);
 
-    // 插入成对的格式化文本，并确保光标位于中间
     const newText = `${textBefore}${symbols}${textSelected}${symbols}${textAfter}`;
     setText(newText);
 
-    // 确保光标位于格式化符号之间
+    // 更新光标位置
     setTimeout(() => {
-      // 如果没有选中文本，将光标定位在两个格式化符号之间
-      const newCursorPosition = start + symbols.length;
       // @ts-ignore
-      textareaRef.current.selectionStart = newCursorPosition;
-      // @ts-ignore
-      textareaRef.current.selectionEnd = newCursorPosition;
+      textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + symbols.length;
       // @ts-ignore
       textareaRef.current.focus();
     }, 0);
   };
+
 
 
   useEffect(() => {
@@ -331,7 +347,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
     const callback = (success: boolean) => {
       if (success) {
-        console.log("邮件发送成功");
+      //  console.log("邮件发送成功");
         setText(''); // 清空文本输入
         toast({
           title: "发送成功",
@@ -491,7 +507,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       }
     };
 
-    console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
+   //  console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
 
     try {
       const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {
@@ -709,7 +725,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             <DropdownMenuItem>⭐ 星标一下</DropdownMenuItem>
             <DropdownMenuItem>🚫 把它屏蔽</DropdownMenuItem>
             <DropdownMenuItem>🐋 指定回复</DropdownMenuItem>
-            <DropdownMenuItem >⛔ 举报它</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleOpenReportDrawer}>⛔ 举报它</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

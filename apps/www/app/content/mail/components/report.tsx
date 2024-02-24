@@ -296,11 +296,11 @@ async function generateLabels(text: string): Promise<string> {
 
   try {
     const response = await axios.post(url, JSON.stringify(data), {headers});
-    console.log("GPT Response:", response.data);
+   // console.log("GPT Response:", response.data);
     const labels = response.data.choices[0].message.content;
     return labels;
   } catch (error) {
-    console.error("在判断违规的时候报错了:", error);
+  //  console.error("在判断违规的时候报错了:", error);
     return '';
   }
 }

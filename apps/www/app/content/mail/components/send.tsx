@@ -70,7 +70,7 @@ async function sendMail(options: MailOptions, callback: (success: boolean) => vo
     }
   };
 
-  console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
+  // console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
 
   try {
     const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {
@@ -79,7 +79,7 @@ async function sendMail(options: MailOptions, callback: (success: boolean) => vo
       }
     });
 
-    console.log("邮件发送成功", response.data);
+   // console.log("邮件发送成功", response.data);
     callback(true); // 调用回调函数，表示成功
   } catch (error) {
     // @ts-ignore
