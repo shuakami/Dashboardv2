@@ -21,7 +21,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/registry/new-york/ui/alert-dialog";
-import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
+import {
+  FontBoldIcon,
+  FontItalicIcon,
+  UnderlineIcon,
+} from "@radix-ui/react-icons";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/registry/new-york/ui/toggle-group";
+import {  Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
 
 import {DropdownMenuContent, DropdownMenuItem,} from "@/registry/default/ui/dropdown-menu"
 import {Avatar, AvatarFallback, AvatarImage,} from "@/registry/new-york/ui/avatar"
@@ -33,7 +42,7 @@ import {Popover, PopoverContent, PopoverTrigger,} from "@/registry/new-york/ui/p
 import {Separator} from "@/registry/new-york/ui/separator"
 import {Switch} from "@/registry/new-york/ui/switch"
 import {Textarea} from "@/registry/new-york/ui/textarea"
-import {Tooltip, TooltipContent, TooltipTrigger,} from "@/registry/new-york/ui/tooltip"
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/registry/new-york/ui/tooltip"
 import {Mail} from "@/app/content/mail/data"
 import {useToast} from "@/registry/new-york/ui/use-toast"
 import {ToastAction} from "@/registry/new-york/ui/toast"
@@ -62,6 +71,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const { mails, refreshMails } = useMail();
   const [forceShowArchivedUI, setForceShowArchivedUI] = useState(false);
   const [showReportDrawer, setShowReportDrawer] = useState(false);
+  const textareaRef = React.useRef(null);
 
   let locale;
   switch(userPrefLanguage) {
@@ -75,6 +85,41 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const handleCloseDrawer = () => {
     setShowReportDrawer(false); // 用于关闭Drawer
   };
+
+  const handleFormatClick = (format: string) => {
+    const markdownSymbols = {
+      bold: '**',
+      italic: '*',
+      underline: '~~', // Markdown没有官方的下划线格式，这里用删除线代替示例
+    };
+    // @ts-ignore
+    const symbols = markdownSymbols[format];
+    if (!textareaRef.current) return;
+    // @ts-ignore
+    const start = textareaRef.current.selectionStart;
+    // @ts-ignore
+    const end = textareaRef.current.selectionEnd;
+    const textBefore = text.substring(0, start);
+    const textSelected = text.substring(start, end);
+    const textAfter = text.substring(end, text.length);
+
+    // 插入成对的格式化文本，并确保光标位于中间
+    const newText = `${textBefore}${symbols}${textSelected}${symbols}${textAfter}`;
+    setText(newText);
+
+    // 确保光标位于格式化符号之间
+    setTimeout(() => {
+      // 如果没有选中文本，将光标定位在两个格式化符号之间
+      const newCursorPosition = start + symbols.length;
+      // @ts-ignore
+      textareaRef.current.selectionStart = newCursorPosition;
+      // @ts-ignore
+      textareaRef.current.selectionEnd = newCursorPosition;
+      // @ts-ignore
+      textareaRef.current.focus();
+    }, 0);
+  };
+
 
   useEffect(() => {
     // 当mail prop发生变化时，清空已翻译的内容
@@ -195,6 +240,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       }],
       stream: true,
     };
+
+
 
     try {
       const response = await fetch(url, {
@@ -421,6 +468,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       });
     }
   };
+
   async function restoreDeletedMail(mailId: string) {
     const mailDataStr = localStorage.getItem(`deletedMail_${mailId}`);
     if (!mailDataStr) {
@@ -500,7 +548,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     return () => clearInterval(interval); // 清理定时器
   }, []);
 
-
   const handleButtonRelease = () => {
     // @ts-ignore
     clearTimeout(pressTimer); // 如果用户在2秒内释放按钮，则清除定时器
@@ -513,8 +560,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     };
   }, [pressTimer]);
 
-  // @ts-ignore
-  // @ts-ignore
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
       <div className="flex items-center p-2">
@@ -768,29 +813,52 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             <form>
               <div className="grid gap-4">
                 <Textarea
+                  ref={textareaRef}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   className={`p-4 ${mail && mail.archive ? 'bg-gray-200 text-gray-500' : ''}`}
                   placeholder={`回复 ${mail ? mail.name : ''}...`}
-                  disabled={mail && mail.archive} // 根据邮件是否归档禁用输入
+                  disabled={mail && mail.archive}
                 />
-                <div style={{maxHeight: '100px', overflowX: 'auto'}}>
-                  <ReactMarkdown>{text}</ReactMarkdown>
-                </div>
-                <div className="flex items-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Label htmlFor="mute"
-                             className={`flex cursor-pointer items-center gap-2 text-xs font-normal ${mail && mail.archive ? 'text-gray-500' : ''}`}>
-                        <Switch id="mute" aria-label="Mute thread"
-                                disabled={mail && mail.archive}/> {/* 根据邮件是否归档禁用开关 */}
-                        采用更安全的发送方式
-                      </Label>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      用于敏感信息发送 会使用更高的加密水平
-                    </TooltipContent>
-                  </Tooltip>
+
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <ToggleGroup type="multiple" aria-label="Format text">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ToggleGroupItem value="bold" aria-label="Bold" disabled={mail && mail.archive} onClick={() => handleFormatClick('bold')}>
+                            <FontBoldIcon className="h-4 w-4"/>
+                          </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>粗体</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ToggleGroupItem value="italic" aria-label="Italic" disabled={mail && mail.archive} onClick={() => handleFormatClick('italic')}>
+                            <FontItalicIcon className="h-4 w-4"/>
+                          </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>斜体</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ToggleGroupItem value="underline" aria-label="Underline" disabled={mail && mail.archive} onClick={() => handleFormatClick('underline')}>
+                            <UnderlineIcon className="h-4 w-4"/>
+                          </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>下划线</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </ToggleGroup>
+                  </TooltipProvider>
+
                   <Button
                     onMouseDown={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除按下事件处理
                     onMouseUp={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除释放事件处理
@@ -839,7 +907,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               </div>
             </div>
           </div>
-
       )}
     </div>
   )
