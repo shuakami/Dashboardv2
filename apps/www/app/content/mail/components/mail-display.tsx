@@ -809,11 +809,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </div>
           ) : (
               <>
-              <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-                <ReactMarkdown>{mail.text}</ReactMarkdown>
-                <br></br>
-                {translatedText && (
-                  <>
+                <div className="custom-scroll max-h-[630px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap p-4 text-sm">
+                  <ReactMarkdown>{mail.text}</ReactMarkdown>
+                  <br></br>
+                  {translatedText && (
+                    <>
                     <br></br>
                     <br></br>
                     <ReactMarkdown>{translatedText}</ReactMarkdown>

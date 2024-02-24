@@ -1,4 +1,6 @@
 const { fontFamily } = require("tailwindcss/defaultTheme")
+const plugin = require('tailwindcss/plugin');
+const scrollbar = require('tailwind-scrollbar');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -75,4 +77,5 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate")],
+  scrollbar,
 }

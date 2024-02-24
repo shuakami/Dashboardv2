@@ -153,12 +153,13 @@ export function ReportDrawer({ mail, open, onClose }) {
             <>
               <div className="mt-6">
                 <div className="mb-4 text-center text-lg font-semibold">{mail.title}</div>
-                <p className="dark:bg-dark mx-auto rounded  p-4 text-sm dark:text-white" style={{maxWidth: '100%'}}>{mail.content}</p>
+                <p className="custom-scroll dark:bg-dark mx-auto max-h-[330px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap rounded  p-4 text-sm dark:text-white"
+                   style={{maxWidth: '100%'}}>{mail.content}</p>
               </div>
               <DrawerFooter className="mt-6 flex justify-center">
                 <div className="flex justify-center space-x-2">
                   <DrawerClose asChild>
-                    <Button variant="outline" className="flex-1">取消</Button>
+                  <Button variant="outline" className="flex-1">取消</Button>
                   </DrawerClose>
                   <Button onClick={submitReport} disabled={isSubmitting} className="flex-1">提交举报</Button>
                 </div>
