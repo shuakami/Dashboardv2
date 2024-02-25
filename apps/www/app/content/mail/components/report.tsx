@@ -368,24 +368,14 @@ export function ReportDrawer({ mail, open, onClose }) {
                     </Alert>
                   )}
                   <CardContent>
-                    {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() === "违规" ? (
-                      // 如果有人工复审，且判断为违规，显示以下内容
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">违规</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-                          您举报的内容经过人工复审评定后，已被标记为违反社区规定🐳<br className="hidden md:block"/>
-                          感谢你的耐心等待。具体情况可切换到人工复审Tab查看。
-                        </p>
-                      </div>
-                    ) : reportResult?.resultMessage.includes("不违规") ? (
-                      // 如果AI判断为不违规，显示以下内容
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
+                    {reportResult?.resultMessage.includes("不违规") ? (
+                      <div className="flex h-full flex-col items-center justify-center space-y-4"
+                           style={reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() === "违规" ? { textDecoration: "line-through" } : {}}>
                         <h2
                           className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
                         <p className="leading-7 [&:not(:first-child)]:mt-6">
                           您举报的内容经过系统评定后，不违反社区规定，不被标记为违规🐳<br className="hidden md:block"/>
-                          不过你的请求已经被提交至社区违规数据库，我们会在30天内给你发送回执邮件😿保证不会放过一个漏网之鱼。
+                          不过你的请求已经被提交至社区违规数据库，我们会在30天内给你发送回执邮件😿保证不会放过一个漏网之鱼
                         </p>
                       </div>
                     ) : (
