@@ -42,6 +42,11 @@ import {
 } from "@/registry/new-york/ui/tabs"
 import { TooltipProvider } from "@/registry/new-york/ui/tooltip"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/registry/new-york/ui/resizable"
+import { generateAndSubmitReport } from './weekReportLogic';
+import {useEffect} from "react";
+import {use51laAnalytics} from './use51LaAnalytics';
+import axios from 'axios';
+import { toast } from "@/registry/new-york/ui/use-toast"
 
 interface MailProps {
   accounts: {
@@ -67,6 +72,8 @@ export function Mail({
   // 正确地解构useMail钩子返回的对象
   const { config, setConfig, mails } = useMail() // 修正了这里
   const [searchQuery, setSearchQuery] = React.useState('');
+  use51laAnalytics();
+  const { refreshMails } = useMail();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -75,6 +82,47 @@ export function Mail({
     mail.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
     mail.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    const checkAndGenerateReport = async () => {
+      try {
+        // 请求现有的周报数据
+        const response = await axios.get('https://xn--7ovw36h.love/api/weekreports');
+        const reports = response.data.data;
+
+        // 寻找最新的报告日期
+        const latestReportDate = reports.reduce((latestDate: string | number | Date, report: { attributes: { date: string | number | Date } }) => {
+          const reportDate = new Date(report.attributes.date);
+          return reportDate > new Date(latestDate) ? reportDate : new Date(latestDate);
+        }, new Date(0)); // 初始化为很早以前的日期
+        console.log(`Latest report date: ${latestReportDate.toISOString()}`);
+
+        // 检查最新报告日期是否在7天内
+        // @ts-ignore
+        const daysDifference = (new Date() - latestReportDate) / (1000 * 60 * 60 * 24);
+        console.log(`Days since last report: ${daysDifference}`);
+        if (daysDifference < 7) {
+          console.log("The latest report was generated within the last 7 days.");
+          return;
+        }
+
+        // 如果超过7天，生成新的周报
+        await generateAndSubmitReport();
+        console.log('Weekly report generated and submitted successfully.');
+        toast({
+          title: "周报生成完毕",
+          description: "🐱好耶！！请看邮件列表！新的周报！",
+        });
+        refreshMails();
+      } catch (error) {
+        console.error('Error during report checking or generation:', error);
+      }
+    };
+
+    checkAndGenerateReport();
+  }, []); // 空依赖数组确保仅在组件挂载时运行
+
+
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup

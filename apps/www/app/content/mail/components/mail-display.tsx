@@ -35,8 +35,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/registry/new-york/ui/toggle-group";
-import {  Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
-
+import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
 import {DropdownMenuContent, DropdownMenuItem,} from "@/registry/default/ui/dropdown-menu"
 import {Avatar, AvatarFallback, AvatarImage,} from "@/registry/new-york/ui/avatar"
 import {Button} from "@/registry/new-york/ui/button"
@@ -83,7 +82,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const { toast } = useToast();
   // 加载状态指示
   const [isLoading, setIsLoading] = useState(false);
-  // 邮件钩子
+  // 邮件刷新钩子
   const { mails, refreshMails } = useMail();
   // 已归档UI的标志
   const [forceShowArchivedUI, setForceShowArchivedUI] = useState(false);
@@ -101,6 +100,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       setUserPrefLanguage(language);
     }
   }, []);
+
 
   let locale;
   switch(userPrefLanguage) {
@@ -351,7 +351,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           title: "上传日志",
           description: "宝贝！上传日志可以更好的解决问题哦！😿",
           duration: 5000,
-          action: <ToastAction  altText="Upload logs">上传日志</ToastAction>,
+          action: <ToastAction altText="Upload logs">上传日志</ToastAction>,
         });
       }, 6000);
     }

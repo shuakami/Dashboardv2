@@ -44,7 +44,7 @@ async function generateLabels(text: string): Promise<string> {
 
   try {
     const response = await axios.post(url, data, { headers });
-    const labels = response.data.choices[0].message.content; // 假设API响应的格式正确
+    const labels = response.data.choices[0].message.content;
     return labels;
   } catch (error) {
     console.error("生成标签时发生错误:", error);
@@ -84,7 +84,7 @@ async function sendMail(options: MailOptions, callback: (success: boolean) => vo
       }
     });
 
-   // console.log("邮件发送成功", response.data);
+    console.log("邮件发送成功", response.data);
     callback(true); // 调用回调函数，表示成功
   } catch (error) {
     // @ts-ignore

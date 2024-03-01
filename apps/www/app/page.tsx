@@ -14,8 +14,8 @@ import {
 } from "@/components/page-header"
 import { buttonVariants } from "@/registry/new-york/ui/button"
 import MailPage from "@/app/content/mail/page"
-
 export default function IndexPage() {
+
   return (
 
 
