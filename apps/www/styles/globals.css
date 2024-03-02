@@ -79,6 +79,27 @@
   }
 }
 
+.system-message {
+  /* 添加边框颜色 */
+  border-color: #fffefe;
+
+  /* 添加背景颜色 */
+  background-color: rgba(71, 136, 224, 0.37);
+
+
+}
+
+.context-menu {
+  position: absolute;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+}
+
+.context-menu .content {
+  pointer-events: auto;
+}
+
 /* 隐藏整个页面的滚动条，但允许滚动 */
 html {
   scrollbar-width: none; /* Firefox */

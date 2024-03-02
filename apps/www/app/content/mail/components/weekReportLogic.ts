@@ -76,9 +76,9 @@ export const generateAndSubmitReport = async () => {
       const content = lines.slice(1).join('\n'); // 剩下的作为内容
       const date = new Date().toISOString().split('T')[0]; // 使用当前日期作为报告日期
 
-      console.log("Extracted report details:", { title, content,      date });
+      console.log("Extracted report details:", { title, content, date });
 
-      // 提交周报到后端
+// ST1- 提交周报到后端
       await axios.post('https://xn--7ovw36h.love/api/weekreports', {
         data: {
           title: title,
@@ -92,6 +92,25 @@ export const generateAndSubmitReport = async () => {
       });
 
       console.log("Backend submission response:", response.data);
+
+// ST2- 提交邮件通知
+      await axios.post('https://xn--7ovw36h.love/api/mails', {
+        data: {
+          name: "System",//固定
+          subject: title,
+          text: content,
+          date: date,
+          email: "system@sdjz.wiki",
+          labels:"系统消息,周报"
+        }
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log("Email submission response:", response.data);
+
     } catch (error) {
       console.error("Error during data fetching or report generation:", error);
     } finally {
