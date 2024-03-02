@@ -3,10 +3,6 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
-body, html {
-  @apply h-full m-0 flex justify-center items-center bg-transparent; /* 设置背景透明 */
-}
-
 .logo-container {
   @apply relative w-72 h-24 overflow-hidden flex justify-center items-center;
 }

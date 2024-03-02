@@ -230,15 +230,21 @@ export function ReportDrawer({ mail, open, onClose }) {
       <DrawerContent>
         <div className="mx-auto w-full max-w-md p-4">
           {isLoading || isFadingOut ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '240px' }} className={isFadingOut ? 'fadeOut' : ''}>
-              <Loading />
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '240px',
+              position: 'relative' // 相对定位
+            }} className={isFadingOut ? 'fadeOut' : ''}>
+              <Loading/>
             </div>
           ) : (
             <>
-          <DrawerHeader>
-            <DrawerTitle className="text-center">举报</DrawerTitle>
-            {!showResult && (
-              <DrawerDescription className="mt-2 text-center">
+              <DrawerHeader>
+                <DrawerTitle className="text-center">举报</DrawerTitle>
+                {!showResult && (
+                  <DrawerDescription className="mt-2 text-center">
                 您正在举报一封邮件 请确认以下信息无误后提交
                 <br></br>
                 我们可能会使用您和他人的对话内容来判断是否涉嫌违规
