@@ -856,7 +856,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   <CustomMailText text={mail.text} date={mail.date} />
                 ) : (
                   <>
-                  <div className="custom-scroll max-h-[630px] max-w-[530px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap p-4 text-sm">
                   <ReactMarkdown>{mail.text}</ReactMarkdown>
                     <br></br>
                     {translatedText && (
@@ -868,7 +867,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         *翻译由人工智能生成 准确性请自行确认
                       </>
                     )}
-                  </div>
+
                   </>
                 )}
               </div>
