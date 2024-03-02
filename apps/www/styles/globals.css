@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,7 +103,24 @@
 
 .context-menu .content {
   pointer-events: auto;
+}.fade-in {
+   opacity: 0;
+   transition: opacity 250ms ease-in-out;
+ }
+
+.fade-in.enter {
+  opacity: 1;
 }
+
+.fade-out {
+  opacity: 1;
+  transition: opacity 250ms ease-in-out;
+}
+
+.fade-out.leave {
+  opacity: 0;
+}
+
 
 /* 隐藏整个页面的滚动条，但允许滚动 */
 html {

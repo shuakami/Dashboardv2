@@ -1,4 +1,9 @@
-import React, {useEffect, useState} from 'react';
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
+import React, {useEffect, useRef, useState} from 'react';
 import {AspectRatio} from "@/registry/new-york/ui/aspect-ratio";
 import Image from "next/image"
 
@@ -12,6 +17,9 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
   const paragraphs = text.split('\n').filter((line: string) => line.trim() !== '');
   const [isDark, setIsDark] = useState(false);
   const weekNumber = getWeekNumber(date);
+  const [isImageVisible, setIsImageVisible] = useState(false);
+  const imageRef = useRef(null);
+  const textRef = useRef(null);
 
   useEffect(() => {
     // 检测暗黑模式的变化
@@ -25,6 +33,41 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
     // 清理监听器
     return () => matchDark.removeEventListener('change', handleChange);
   }, []);
+
+  useEffect(() => {
+    // 在组件加载完成后，设置 `isImageVisible` 为 `true`，显示图片
+    setTimeout(() => setIsImageVisible(true), 100);
+
+    // 监听模式变化
+    const handleThemeChange = () => {
+      // 重新设置 `isImageVisible` 为 `false`，触发动画
+      setIsImageVisible(false);
+
+      // 延迟 100 毫秒后，将 `isImageVisible` 设置为 `true`，显示图片
+      setTimeout(() => setIsImageVisible(true), 100);
+    };
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handleThemeChange);
+
+    return () => {
+      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', handleThemeChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'opacity') {
+          // @ts-ignore
+          textRef.current.style.opacity = imageOpacity;
+        }
+      });
+    });
+    // @ts-ignore
+    return () => {
+      observer.disconnect();
+    };
+  }, [isImageVisible]);
 
   // 根据isDark状态选择图片源
   const imageUrl = isDark
@@ -98,7 +141,7 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
           {values.map((value, index) => {
             // 检查值是否以"ms"结尾并转换
             let formattedValue = value;
-            if (typeof value === 'string' && value.endsWith('ms')) {
+            if (value.endsWith('ms')) {
               let seconds = parseInt(value) / 1000;
               if (seconds > 100) {
                 // 如果秒数大于100，则转换为分钟
@@ -138,21 +181,30 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
     <div>
       <div className="relative mt-2" style={{ width: '469px', height: '256px' }}>
       <AspectRatio ratio={16 / 9} className="mt-2 bg-transparent" >
-          <Image
-            src={imageUrl}
-            alt="Photo by Drew Beamer"
-            fill
-            className="rounded-md object-cover"
-          />
-          {isDark ? (
-            <p className="absolute bottom-16 left-1 ml-10 p-4 text-white">
-              {weekNumber}
-            </p>
-          ) : (
-            <p className="absolute right-80 top-20 ml-6 p-4 text-xs text-black">
-              {weekNumber}
-            </p>
-          )}
+        <Image
+          ref={imageRef}
+          src={imageUrl}
+          alt="Photo by Drew Beamer"
+          fill
+          className={`${isImageVisible ? 'opacity-100' : 'opacity-0'} rounded-md object-cover transition-opacity duration-500 ease-in`}
+        />
+        {isDark ? (
+          <p
+            ref={textRef}
+            className="absolute bottom-16 left-1 ml-10 p-4 text-white transition-opacity duration-500 ease-in"
+            style={{ opacity: isImageVisible ? 1 : 0 }}
+          >
+            {weekNumber}
+          </p>
+        ) : (
+          <p
+            ref={textRef}
+            className="absolute right-80 top-20 ml-6 p-4 text-xs text-black transition-opacity duration-500 ease-in"
+            style={{ opacity: isImageVisible ? 1 : 0 }}
+          >
+            {weekNumber}
+          </p>
+        )}
       </AspectRatio>
       </div>
       {renderAnalysisText()}
