@@ -880,7 +880,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   ref={textareaRef}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className={`p-4 ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'bg-gray-200 text-gray-500' : ''}`}
+                  className={`p-4 ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'bg-gray-200 text-gray-500 dark:border dark:bg-white/10' : ''}`}
                   placeholder={mail && mail.name === '系统消息-周报' ? '系统消息不能回复' : `回复 ${mail ? mail.name : ''}...`}
                   disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
                 />
@@ -936,7 +936,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                     onTouchStart={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonPress}
                     onTouchEnd={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonRelease}
                     size="sm"
-                    className={`ml-auto ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'cursor-not-allowed bg-gray-300 text-gray-500' : ''}`}
+                    className={`ml-auto ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'cursor-not-allowed bg-gray-300 text-gray-500 dark:border dark:bg-white/10' : ''}`}
                     onClick={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleSendMailClick}
                     disabled={mail && (mail.archive || mail.name === '系统消息-周报') || isLoading}
                   >
