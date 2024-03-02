@@ -35,7 +35,7 @@ export const generateAndSubmitReport = async () => {
     } = overviewResponse.data.bean;
 
     // 构建提示词
-    const promptSystem = `生成一个全面周报，包括所有的线性分析、对比，以及需要预警、改进的地方。`;
+    const promptSystem = `生成周报，包含四部分数据分析：今日、昨日对比、本月累计、总计。每部分应包含UV、新访客、PV、跳出率和平均时长。附加线性分析、对比分析和改进方案。格式如下：### 网站数据分析周报 #### 1. 今日数据分析：- UV: [今日UV]...以此类推，把1234都说完。然后来到线性分析、对比分析和改进方案部分按照：线性分析：xxx格式`;
     const promptUser = `今日UV: ${curUv}, 新访客: ${curNewUserCount}, PV: ${curPv}, 跳出率: ${curBounceRate}%, 平均时长: ${curAvgDuration}ms; 昨日对比: UV: ${beforeUv}, 新访客: ${beforeNewUserCount}, PV: ${beforePv}, 跳出率: ${beforeBounceRate}%, 时长: ${beforeAvgDuration}ms; 本月累计: UV: ${monthUv}, 新访客: ${monthNewUserCount}, PV: ${monthPv}, 跳出率: ${monthBounceRate}%, 时长: ${monthAvgDuration}ms; 总计: UV: ${totalUv}, 新访客: ${totalNewUserCount}, PV: ${totalPv}, 跳出率: ${totalBounceRate}%, 时长: ${totalAvgDuration}ms.`;
 
     const data = {

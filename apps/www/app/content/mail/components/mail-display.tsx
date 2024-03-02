@@ -8,7 +8,9 @@ import format from "date-fns/format"
 import React, {useEffect, useState} from 'react';
 import nextSaturday from "date-fns/nextSaturday"
 import {enUS, zhCN} from 'date-fns/locale'
+// @ts-ignore
 import ReactMarkdown from 'react-markdown';
+import CustomMailText from './CustomMailText'
 import sendMail from './send';
 import {franc} from 'franc';
 import { deleteMail } from './delete';
@@ -367,7 +369,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     const mailOptions: MailOptions = {
       text: currentText,
       emailAddress: mail?.email,
-
       isReplyFromHomepage: true,
       currentViewingMailTitle: mail?.subject, // 使用当前邮件的主题作为回复主题
     };
@@ -786,7 +787,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 <div className="font-semibold">{mail.name}</div>
                 <div className="line-clamp-1 text-xs">{mail.subject}</div>
                 <div className="line-clamp-1 text-xs">
-                  <span className="font-medium">回复到：</span>{mail.email}
+                  {
+                    mail.name !== '系统消息-周报' && (
+                      <span className="font-medium">回复到：</span>
+                    )
+                  }{mail.email}
                 </div>
               </div>
             </div>
@@ -845,22 +850,28 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               )}
             </div>
           ) : (
-              <>
-                <div className="custom-scroll max-h-[630px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap p-4 text-sm">
-                  <ReactMarkdown>{mail.text}</ReactMarkdown>
-                  <br></br>
-                  {translatedText && (
-                    <>
+            <>
+              <div className="custom-scroll max-h-[630px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap p-4 text-sm">
+                {mail.name === '系统消息-周报' ? (
+                  <CustomMailText text={mail.text} date={mail.date} />
+                ) : (
+                  <>
+                    <ReactMarkdown>{mail.text}</ReactMarkdown>
                     <br></br>
-                    <br></br>
-                    <ReactMarkdown>{translatedText}</ReactMarkdown>
-                    <br></br>
-                    *翻译由人工智能生成 准确性请自行确认
+                    {translatedText && (
+                      <>
+                        <br></br>
+                        <br></br>
+                        <ReactMarkdown>{translatedText}</ReactMarkdown>
+                        <br></br>
+                        *翻译由人工智能生成 准确性请自行确认
+                      </>
+                    )}
                   </>
                 )}
               </div>
-              </>
-            )}
+            </>
+          )}
           <Separator className="mt-auto"/>
           <div className="p-4">
             <form>
@@ -869,17 +880,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   ref={textareaRef}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className={`p-4 ${mail && mail.archive ? 'bg-gray-200 text-gray-500' : ''}`}
-                  placeholder={`回复 ${mail ? mail.name : ''}...`}
-                  disabled={mail && mail.archive}
+                  className={`p-4 ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'bg-gray-200 text-gray-500' : ''}`}
+                  placeholder={mail && mail.name === '系统消息-周报' ? '系统消息不能回复' : `回复 ${mail ? mail.name : ''}...`}
+                  disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
                 />
+
 
                 <div className="flex items-center gap-2">
                   <TooltipProvider>
                     <ToggleGroup type="multiple" aria-label="Format text">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ToggleGroupItem value="bold" aria-label="Bold" disabled={mail && mail.archive} onClick={() => handleFormatClick('bold')}>
+                          <ToggleGroupItem value="bold" aria-label="Bold"
+                                           disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
+                                           onClick={() => handleFormatClick('bold')}>
                             <FontBoldIcon className="h-4 w-4"/>
                           </ToggleGroupItem>
                         </TooltipTrigger>
@@ -890,7 +904,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ToggleGroupItem value="italic" aria-label="Italic" disabled={mail && mail.archive} onClick={() => handleFormatClick('italic')}>
+                          <ToggleGroupItem value="italic" aria-label="Italic"
+                                           disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
+                                           onClick={() => handleFormatClick('italic')}>
                             <FontItalicIcon className="h-4 w-4"/>
                           </ToggleGroupItem>
                         </TooltipTrigger>
@@ -901,7 +917,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ToggleGroupItem value="underline" aria-label="Underline" disabled={mail && mail.archive} onClick={() => handleFormatClick('underline')}>
+                          <ToggleGroupItem value="underline" aria-label="Underline"
+                                           disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
+                                           onClick={() => handleFormatClick('underline')}>
                             <UnderlineIcon className="h-4 w-4"/>
                           </ToggleGroupItem>
                         </TooltipTrigger>
@@ -913,14 +931,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   </TooltipProvider>
 
                   <Button
-                    onMouseDown={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除按下事件处理
-                    onMouseUp={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除释放事件处理
-                    onTouchStart={mail && mail.archive ? undefined : handleButtonPress} // 如果邮件归档，移除触摸开始事件处理
-                    onTouchEnd={mail && mail.archive ? undefined : handleButtonRelease} // 如果邮件归档，移除触摸结束事件处理
+                    onMouseDown={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonPress}
+                    onMouseUp={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonRelease}
+                    onTouchStart={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonPress}
+                    onTouchEnd={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonRelease}
                     size="sm"
-                    className={`ml-auto ${mail && mail.archive ? 'cursor-not-allowed bg-gray-300 text-gray-500' : ''}`}
-                    onClick={mail && mail.archive ? undefined : handleSendMailClick} // 如果邮件归档，移除点击事件处理
-                    disabled={mail && mail.archive || isLoading} // 如果邮件归档或正在加载，禁用按钮
+                    className={`ml-auto ${mail && (mail.archive || mail.name === '系统消息-周报') ? 'cursor-not-allowed bg-gray-300 text-gray-500' : ''}`}
+                    onClick={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleSendMailClick}
+                    disabled={mail && (mail.archive || mail.name === '系统消息-周报') || isLoading}
                   >
                     {isLoading ? (
                       <>
@@ -957,9 +975,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               <Skeleton className="mt-4 h-20 w-full"/>
               <Skeleton className="mt-4 h-20 w-full"/>
               <Skeleton className="mt-4 h-20 w-full"/>
-              </div>
             </div>
           </div>
+        </div>
       )}
     </div>
   )
