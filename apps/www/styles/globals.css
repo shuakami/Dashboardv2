@@ -178,3 +178,16 @@ html::-webkit-scrollbar {
 .dark * {
   scrollbar-color: #4b5563 transparent; /* 暗黑模式 */
 }
+
+.fadeOut {
+  animation: fadeOutAnimation 1s forwards;
+}
+
+@keyframes fadeOutAnimation {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

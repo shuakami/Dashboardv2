@@ -7,6 +7,7 @@ import * as React from "react";
 import { Button } from "@/registry/new-york/ui/button";
 // @ts-ignore
 import CryptoJS from 'crypto-js';
+import Loading from "@/app/content/mail/loading";
 import { Check } from 'lucide-react';
 import {
   Alert,
@@ -35,6 +36,7 @@ import {
 } from "@/registry/new-york/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/new-york/ui/tabs";
 import Link from "next/link";
+import {useEffect, useState} from "react";
 
 interface Mail {
   title: string;
@@ -61,6 +63,8 @@ export function ReportDrawer({ mail, open, onClose }) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [reportResult, setReportResult] = React.useState<ReportResult | null>(null);
   const [showResult, setShowResult] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
   // 生成基于邮件标题和内容的唯一键
   const generateUniqueKeyForMail = (mail: Mail) => {
@@ -91,6 +95,8 @@ export function ReportDrawer({ mail, open, onClose }) {
       console.error("Error sending report result to API:", error);
     }
   };
+
+
 
   const loadReportResult = async (mail: Mail) => {
     const uniqueKey = generateUniqueKeyForMail(mail);
@@ -142,14 +148,30 @@ export function ReportDrawer({ mail, open, onClose }) {
   };
 
   React.useEffect(() => {
-    (async () => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    const fetchData = async () => {
+      setIsLoading(true);
       const loadedResult = await loadReportResult(mail);
       if (loadedResult) {
         setReportResult(loadedResult);
         setShowResult(true);
       }
-    })();
+
+      // 添加延时
+      timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    };
+
+    fetchData();
+
+    // 清除定时器（在组件卸载时避免内存泄漏）
+    return () => clearTimeout(timer);
   }, [mail.title, mail.content]);
+
+
+
   async function submitReport() {
     setIsSubmitting(true); // 开始提交前，标记为正在提交
 
@@ -207,6 +229,12 @@ export function ReportDrawer({ mail, open, onClose }) {
     <Drawer open={open} onOpenChange={onClose}>
       <DrawerContent>
         <div className="mx-auto w-full max-w-md p-4">
+          {isLoading || isFadingOut ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '240px' }} className={isFadingOut ? 'fadeOut' : ''}>
+              <Loading />
+            </div>
+          ) : (
+            <>
           <DrawerHeader>
             <DrawerTitle className="text-center">举报</DrawerTitle>
             {!showResult && (
@@ -417,6 +445,8 @@ export function ReportDrawer({ mail, open, onClose }) {
                 </Card>
               </TabsContent>
             </Tabs>
+          )}
+            </>
           )}
         </div>
       </DrawerContent>

@@ -10,6 +10,7 @@ import { Mail } from "@/app/content/mail/components/mail"
 // @ts-ignore
 import { accounts, mails } from "@/app/content/mail/data"
 import React from "react";
+import Loading from "@/app/content/mail/loading";
 
 export default function MailPage() {
   const layout = cookies().get("react-resizable-panels:layout")

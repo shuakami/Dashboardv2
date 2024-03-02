@@ -71,17 +71,22 @@ export function Mail({
                      }: MailProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
   // 正确地解构useMail钩子返回的对象
-  const { config, setConfig, mails } = useMail() // 修正了这里
+  const { config, setConfig, mails } = useMail();
   const [searchQuery, setSearchQuery] = React.useState('');
   use51laAnalytics();
   const { refreshMails } = useMail();
 
+  // 这里计算未读邮件的数量
+  const unreadMailsCount = mails.filter(mail => !mail.read).length;
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
+    setSearchQuery(event.target.value.trim().toLowerCase());
   };
+
   const filteredMails = mails.filter((mail) =>
-    mail.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mail.text.toLowerCase().includes(searchQuery.toLowerCase())
+    mail.subject.toLowerCase().includes(searchQuery) ||
+    mail.text.toLowerCase().includes(searchQuery) ||
+    (mail.name && mail.name.toLowerCase().includes(searchQuery))
   );
 
   useEffect(() => {
@@ -150,7 +155,7 @@ export function Mail({
           className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
         >
           <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]': 'px-2')}>
-            <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
+            <AccountSwitcher isCollapsed={isCollapsed} />
           </div>
           <Separator />
           <Nav
@@ -158,7 +163,7 @@ export function Mail({
             links={[
               {
                 title: "消息",
-                label: "128",
+                label: unreadMailsCount > 0 ? unreadMailsCount.toString() : undefined, // 仅当有未读邮件时显示数量
                 icon: Inbox,
                 variant: "default",
               },

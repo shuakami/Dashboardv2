@@ -52,9 +52,10 @@ export async function fetchAccounts(): Promise<Account[]> {
   return response.data.data.map((account: any) => ({
     label: account.attributes.label,
     email: account.attributes.email,
-    icon: React.createElement("div", { dangerouslySetInnerHTML: { __html: account.attributes.icon } }),
+    icon: account.attributes.icon, // 将 icon 改为字符串类型
   }));
 }
+
 
 export async function fetchContacts(): Promise<Contact[]> {
   const response = await axios.get('https://xn--7ovw36h.love/api/contacts');
