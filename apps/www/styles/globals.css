@@ -122,6 +122,14 @@
 }
 
 
+.settings-layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+
+
 /* 隐藏整个页面的滚动条，但允许滚动 */
 html {
   scrollbar-width: none; /* Firefox */

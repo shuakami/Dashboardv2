@@ -1,44 +1,47 @@
-"use client"
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/registry/new-york/ui/dropdown-menu";
+import { usePathname } from "next/navigation";
+import { AlignLeft } from "lucide-react";
+import {Button} from "@/registry/new-york/ui/button";
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/registry/new-york/ui/button"
-
+// @ts-ignore
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
-    href: string
-    title: string
-  }[]
+    title: string;
+    onClick: () => void;
+  }[];
+  onSelect: (title: string) => void;
 }
 
-export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
-  const pathname = usePathname()
+export function SidebarNav({ className, items, onSelect, ...props }: SidebarNavProps) {
+  const pathname = usePathname();
 
   return (
-    <nav
-      className={cn(
-        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
-        className
-      )}
-      {...props}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            pathname === item.href
-              ? "bg-muted hover:bg-muted"
-              : "hover:bg-transparent hover:underline",
-            "justify-start"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
-  )
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <AlignLeft className="cursor-pointer rounded p-1 text-muted-foreground hover:bg-gray-200 " size={30} /> {/* Adjusted styling for direct icon trigger */}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent  side="left" align="start" className="w-44">
+        {items.map((item, index) => (
+            <DropdownMenuGroup key={index}>
+              <DropdownMenuItem onSelect={() => onSelect(item.title)}>
+                {item.title}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+  );
 }

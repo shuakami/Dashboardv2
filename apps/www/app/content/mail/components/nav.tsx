@@ -3,8 +3,6 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
-"use client"
-
 import Link from "next/link"
 import { LucideIcon } from "lucide-react"
 
@@ -23,6 +21,7 @@ interface NavProps {
     label?: string
     icon: LucideIcon
     variant: "default" | "ghost"
+    onClick?: (...args: any[]) => void; // 允许任意参数
   }[]
 }
 
@@ -37,18 +36,23 @@ export function Nav({ links, isCollapsed }: NavProps) {
           isCollapsed ? (
             <Tooltip key={index} delayDuration={0}>
               <TooltipTrigger asChild>
-                <Link
-                  href="#"
+                <button
+                  onClick={(e) => {
+                    console.log('bt-测试')
+                    e.preventDefault();
+                    link.onClick && link.onClick();
+                  }}
                   className={cn(
-                    buttonVariants({ variant: link.variant, size: "icon" }),
+                    buttonVariants({ variant: link.variant, size: isCollapsed ? "icon" : "sm" }),
                     "h-9 w-9",
                     link.variant === "default" &&
-                      "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
+                    "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
                   )}
                 >
+
                   <link.icon className="h-4 w-4" />
                   <span className="sr-only">{link.title}</span>
-                </Link>
+                </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="flex items-center gap-4">
                 {link.title}
@@ -63,6 +67,11 @@ export function Nav({ links, isCollapsed }: NavProps) {
             <Link
               key={index}
               href="#"
+              onClick={(e) => {
+                e.preventDefault(); // 阻止链接默认行为
+                console.log('bt-测试');
+                link.onClick && link.onClick(); // 调用 onClick 函数
+              }}
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default" &&

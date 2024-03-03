@@ -867,7 +867,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         *翻译由人工智能生成 准确性请自行确认
                       </>
                     )}
-
                   </>
                 )}
               </div>

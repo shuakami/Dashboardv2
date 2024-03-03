@@ -24,7 +24,7 @@ import {
   Calendar,
   GaugeCircle
 } from "lucide-react"
-
+import SettingsLayout from "@/app/content/forms/layout";
 import { AccountSwitcher } from "@/app/content/mail/components/account-switcher"
 import { MailDisplay } from "@/app/content/mail/components/mail-display"
 import { MailList } from "@/app/content/mail/components/mail-list"
@@ -62,6 +62,26 @@ interface MailProps {
 }
 
 
+// 计算侧边栏宽度的函数
+const calculateSidebarWidth = () => {
+  const screenWidth = window.innerWidth;
+  let defaultSidebarWidth;
+  // 首先根据屏幕宽度设置默认宽度
+  if (screenWidth > 1280) {
+    defaultSidebarWidth = 14;
+  } else {
+    defaultSidebarWidth = 17;
+  }
+  // 检查localStorage中是否有保存的宽度，且该宽度是否适用于当前屏幕尺寸
+  const savedWidth = parseInt(localStorage.getItem('sidebarWidth') || '0', 10);
+  if (savedWidth && ((screenWidth > 1280 && savedWidth <= 14) || (screenWidth <= 1280 && savedWidth >= 18))) {
+    defaultSidebarWidth = savedWidth;
+  }
+  return defaultSidebarWidth;
+};
+
+
+
 export function Mail({
                        accounts,
                        mails: mailsProp, // 更改名称以避免与useMail钩子的mails冲突
@@ -75,6 +95,14 @@ export function Mail({
   const [searchQuery, setSearchQuery] = React.useState('');
   use51laAnalytics();
   const { refreshMails } = useMail();
+  const [showSettings, setShowSettings] = React.useState(() => {
+    // 在useState初始化时从localStorage中读取showSettings的值
+    const savedShowSettings = localStorage.getItem('showSettings');
+    // 如果localStorage中有值，则返回该值的布尔类型，否则默认为false
+    return savedShowSettings !== null ? savedShowSettings === 'true' : false;
+  });
+  const [sidebarWidth, setSidebarWidth] = React.useState(calculateSidebarWidth);
+
 
   // 这里计算未读邮件的数量
   const unreadMailsCount = mails.filter(mail => !mail.read).length;
@@ -88,6 +116,52 @@ export function Mail({
     mail.text.toLowerCase().includes(searchQuery) ||
     (mail.name && mail.name.toLowerCase().includes(searchQuery))
   );
+
+  useEffect(() => {
+    const savedShowSettings = localStorage.getItem('showSettings');
+    if (savedShowSettings !== null) {
+      setShowSettings(savedShowSettings === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('showSettings', showSettings.toString());
+  }, [showSettings]);
+
+
+  useEffect(() => {
+    // 如果localStorage中没有宽度记录，则认为是新用户
+    const isNewUser = !localStorage.getItem('sidebarWidth');
+    if (isNewUser) {
+      // 根据屏幕宽度决定侧边栏宽度
+      const screenWidth = window.innerWidth;
+      const defaultSidebarWidth = screenWidth > 1280 ? 14 : 18; // 1280大屏幕和小屏幕的分界线
+      localStorage.setItem('sidebarWidth', defaultSidebarWidth.toString());
+    }
+  }, []);
+
+
+
+  // 监听窗口尺寸变化
+  React.useEffect(() => {
+    const handleResize = () => {
+      const newWidth = calculateSidebarWidth();
+      console.log(`Resizing: New sidebar width is ${newWidth}`);
+      setSidebarWidth(newWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+  const handleLayoutChange = (sizes: any[]) => {
+    const newWidth = sizes[0];
+    localStorage.setItem('sidebarWidth', newWidth.toString());
+  };
+
+  const savedWidth = localStorage.getItem('sidebarWidth');
+  const defaultWidth = savedWidth ? parseInt(savedWidth, 10) : defaultLayout[0]; // defaultLayout[0] 作为后备宽度
 
   useEffect(() => {
     const checkAndGenerateReport = async () => {
@@ -141,18 +215,18 @@ export function Mail({
         className="h-full max-h-[940px] items-stretch "
       >
         <ResizablePanel
-          defaultSize={defaultLayout[14]}
+          defaultSize={sidebarWidth}
           collapsedSize={navCollapsedSize}
           collapsible={true}
           minSize={9}
-          maxSize={16}
+          maxSize={18}
           onCollapse={(collapsed) => {
             setIsCollapsed(collapsed)
             document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
               collapsed
             )}`
           }}
-          className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
+          className={cn(isCollapsed && "min-w-[50px] flex-1 transition-all duration-300 ease-in-out")}
         >
           <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]': 'px-2')}>
             <AccountSwitcher isCollapsed={isCollapsed} />
@@ -163,9 +237,12 @@ export function Mail({
             links={[
               {
                 title: "消息",
-                label: unreadMailsCount > 0 ? unreadMailsCount.toString() : undefined, // 仅当有未读邮件时显示数量
+                label: unreadMailsCount > 0 ? unreadMailsCount.toString() : undefined,
                 icon: Inbox,
-                variant: "default",
+                variant: showSettings ? "ghost" : "default",
+                onClick: () => {
+                  setShowSettings(false);
+                },
               },
               {
                 title: "运维",
@@ -195,7 +272,10 @@ export function Mail({
                 title: "设置",
                 label: "",
                 icon: Settings,
-                variant: "ghost",
+                variant: showSettings ? "default" : "ghost",
+                onClick: () => {
+                  setShowSettings(true);
+                },
               },
             ]}
           />
@@ -236,44 +316,48 @@ export function Mail({
             ]}
           />
         </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
-          <Tabs defaultValue="all">
-            <div className="flex items-center px-4 py-2">
-              <h1 className="text-xl font-bold">消息</h1>
-              <TabsList className="ml-auto">
-                <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
-                <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>
-              </TabsList>
-            </div>
-            <Separator />
-            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <form>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search"
-                    className="pl-8"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
+        <ResizableHandle withHandle/>
+        {showSettings ? (
+          <ResizablePanel defaultSize={defaultLayout[1]} minSize={15} className="min-h-screen">
+            <SettingsLayout />
+          </ResizablePanel>
+        ) : (
+          <>
+            <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
+              <Tabs defaultValue="all">
+                <div className="flex items-center px-4 py-2">
+                  <h1 className="text-xl font-bold">消息</h1>
+                  <TabsList className="ml-auto">
+                    <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
+                    <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>
+                  </TabsList>
                 </div>
-              </form>
-            </div>
-            <TabsContent value="all" className="m-0">
-              <MailList items={filteredMails} />
-            </TabsContent>
-            <TabsContent value="unread" className="m-0">
-              <MailList items={filteredMails.filter((item) => !item.read)} />
-            </TabsContent>
-          </Tabs>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={defaultLayout[2]}>
-          <MailDisplay
-            mail={mails.find((item) => item.id === config.selected) || null}
-          />
-        </ResizablePanel>
+                <Separator/>
+                <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <form>
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
+                      <Input
+                        placeholder="Search"
+                        className="pl-8"
+                        value={searchQuery}
+                        onChange={handleSearchChange}/>
+                    </div>
+                  </form>
+                </div>
+                <TabsContent value="all" className="m-0">
+                  <MailList items={filteredMails}/>
+                </TabsContent>
+                <TabsContent value="unread" className="m-0">
+                  <MailList items={filteredMails.filter((item) => !item.read)}/>
+                </TabsContent>
+              </Tabs>
+            </ResizablePanel><ResizableHandle withHandle/><ResizablePanel defaultSize={defaultLayout[2]}>
+            <MailDisplay
+              mail={mails.find((item) => item.id === config.selected) || null}/>
+          </ResizablePanel>
+          </>
+        )}
       </ResizablePanelGroup>
     </TooltipProvider>
   )

@@ -37,6 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/new-york/ui/tabs";
 import Link from "next/link";
 import {useEffect, useState} from "react";
+import {ReloadIcon} from "@radix-ui/react-icons";
 
 interface Mail {
   title: string;
@@ -263,7 +264,16 @@ export function ReportDrawer({ mail, open, onClose }) {
                   <DrawerClose asChild>
                   <Button variant="outline" className="flex-1">取消</Button>
                   </DrawerClose>
+                  {isSubmitting ? (
+                    <>
+                    <Button disabled className="flex-1">
+                      <ReloadIcon className="mr-2 h-4 w-4 animate-spin"/>
+                      提交中
+                    </Button>
+                    </>
+                  ) : (
                   <Button onClick={submitReport} disabled={isSubmitting} className="flex-1">提交举报</Button>
+                  )}
                 </div>
               </DrawerFooter>
               <div
