@@ -11,6 +11,11 @@ export const setupAxiosInterceptors = (() => {
   // 使用静态属性来跟踪拦截器是否已经被设置
   let interceptorsSet = false;
 
+  const whitelistedDomains = [
+    '.51.la',
+    '.openai-hk.com',
+  ];
+
   return () => {
     if (interceptorsSet) {
       return;
@@ -18,6 +23,9 @@ export const setupAxiosInterceptors = (() => {
 
     axios.interceptors.request.use(config => {
       const jwt = Cookies.get('jwt');
+      if (whitelistedDomains.some(domain => config.url!.match(domain))) {
+        return config;
+      }
 
       if (!jwt) {
         // 检查是否在浏览器环境中
@@ -27,6 +35,8 @@ export const setupAxiosInterceptors = (() => {
         }
         return Promise.reject(new Error('No JWT found, redirecting to login'));
       }
+
+
 
       // 如果有JWT，则在每个请求头中添加Authorization
       config.headers.Authorization = `Bearer ${jwt}`;
