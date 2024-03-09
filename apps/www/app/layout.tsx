@@ -29,7 +29,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <>
 
 
-      <html lang="en" suppressHydrationWarning>
+      <html lang="zh" suppressHydrationWarning>
       <head />
       <body
         className={cn(

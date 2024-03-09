@@ -6,6 +6,7 @@
 import axios from 'axios';
 // @ts-ignore
 import Cookies from 'js-cookie';
+import {toast} from "@/registry/new-york/ui/use-toast";
 
 export const setupAxiosInterceptors = (() => {
   // 使用静态属性来跟踪拦截器是否已经被设置
@@ -27,15 +28,24 @@ export const setupAxiosInterceptors = (() => {
         return config;
       }
 
+
       if (!jwt) {
         // 检查是否在浏览器环境中
         if (typeof window !== 'undefined') {
-          // 如果没有JWT，则重定向到登录页
-          window.location.href = '/login';
+          const delayAndRedirect = () => {
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 1000); // 延迟1.5秒执行重定向操作
+          };
+          toast({
+            variant: "destructive",
+            title: "身份验证失效",
+            description: "请重新登录😿",
+          });
+          delayAndRedirect(); // 直接调用延迟跳转函数
         }
         return Promise.reject(new Error('No JWT found, redirecting to login'));
       }
-
 
 
       // 如果有JWT，则在每个请求头中添加Authorization
@@ -48,6 +58,20 @@ export const setupAxiosInterceptors = (() => {
     axios.interceptors.response.use(response => {
       return response;
     }, error => {
+      if (error.response) {
+        // 检查返回的错误是否是账户被封的特定消息
+        const errorMessage = error.response.data?.error?.message;
+        if (errorMessage === "Your account has been blocked by an administrator") {
+          // 检查是否在浏览器环境中
+          if (typeof window !== 'undefined') {
+            // 重定向到被封号的页面
+            window.location.href = '/blocked';
+            return Promise.reject(error); // 这里直接拒绝后续处理，以阻止其他逻辑执行
+          }
+        }
+      }
+
+      // 对于401错误的特殊处理，移动到这里来确保封号检查优先处理
       if (error.response && error.response.status === 401) {
         // 检查是否在浏览器环境中
         if (typeof window !== 'undefined') {
@@ -56,7 +80,9 @@ export const setupAxiosInterceptors = (() => {
           // 重定向到登录页
           window.location.href = '/login';
         }
+        return Promise.reject(error);
       }
+
       return Promise.reject(error);
     });
 

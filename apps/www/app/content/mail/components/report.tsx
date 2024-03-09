@@ -223,7 +223,6 @@ export function ReportDrawer({ mail, open, onClose }) {
       }
     } catch (error) {
       console.error("提交举报时发生错误:", error);
-      // 这里可以根据需要添加错误处理逻辑，例如显示一个错误提示
     }
 
     setIsSubmitting(false); // 结束提交处理，重置提交状态
@@ -314,8 +313,8 @@ export function ReportDrawer({ mail, open, onClose }) {
                           className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
                         <p className="leading-7 [&:not(:first-child)]:mt-6">
                           如您有更多意见，如申请再次复查可发送邮箱至🌟
-                          <a href="mailto:sdjz-wiki@vip.qq.com"
-                             className="text-blue-500 underline">sdjz-wiki@vip.qq.com</a>🌟
+                          <a href="mailto:admin@sdjz.wiki"
+                             className="text-blue-500 underline">admin@sdjz.wiki</a>🌟
                         </p>
                       </div>
                     )}

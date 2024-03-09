@@ -219,7 +219,19 @@ export const verifyDynamicCode = async (token: string, password: string) => {
       return true;
     }
   } catch (error) {
-    // 处理登录失败的情况
+    const axiosError = error as { response?: { data?: { error?: { message?: string } } } };
+    // 检查是否是封号的特定错误消息
+    const errorMessage = axiosError.response?.data?.error?.message;
+    if (errorMessage === "Your account has been blocked by an administrator") {
+      // 如果是封号错误，重定向到封号页面
+      if (typeof window !== 'undefined') {
+        Cookies.set('blockedIdentifier', token, { expires: 1/2880, path: '/' }); // 确保对全站有效
+        window.location.href = '/blocked';
+      }
+      return false; // 返回false，不执行后面的错误处理逻辑
+    }
+
+    // 处理其他类型的登录失败情况
     console.log(`[verifyDynamicCode] Login failed for token ${token}. Error: ${error}`);
     Modal.error({
       title: '验证失败',

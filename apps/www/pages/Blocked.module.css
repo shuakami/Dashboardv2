@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
+.blockedPage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; /* 调整对齐方式以确保文字从左侧开始 */
+  height: 100vh;
+  width: 100vw;
+  color: #FFF;
+  background-color: white;
+  animation: backgroundFade 5s forwards; /* 背景颜色渐变 */
+  padding-left: 25%; /* 调整左侧填充来控制文字的起始位置 */
+}
+
+.blockedText {
+  font-size: 88px;
+  font-weight: bold;
+  opacity: 0;
+  animation: fadeIn 2s forwards; /* 使用fadeIn效果代替原有的打字效果 */
+  font-family: 'Cascadia Code', Courier, monospace;
+  max-width: 0%; /* 限制最大宽度 */
+}
+
+/* 新的fadeIn效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 背景颜色渐变效果调整 */
+@keyframes backgroundFade {
+  0% { background-color: white; }
+  100% { background-color: darkred; }
+}
+
+/* 添加呼吸效果的分割线 */
+.breathingLine {
+  height: 2px;
+  width: 0;
+  background: linear-gradient(to right, #ffe300, white);
+  animation: lineAppear 2s forwards, breathe 2s infinite 2s; /* 先出现再呼吸 */
+  margin-top: 20px; /* 与文字保持一定距离 */
+}
+
+/* 分割线出现动画 */
+@keyframes lineAppear {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* 呼吸效果 */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+

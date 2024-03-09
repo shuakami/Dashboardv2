@@ -194,7 +194,7 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
           <p
             ref={textRef}
             className="absolute bottom-16 left-1 ml-10 p-4 text-white transition-opacity duration-500 ease-in"
-            style={{ opacity: isImageVisible ? 1 : 0 }}
+            style={{ opacity: isImageVisible ? 1 : 0, whiteSpace: 'nowrap' }}
           >
             {weekNumber}
           </p>
@@ -202,7 +202,7 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
           <p
             ref={textRef}
             className="absolute right-80 top-20 ml-6 p-4 text-xs text-black transition-opacity duration-500 ease-in"
-            style={{ opacity: isImageVisible ? 1 : 0 }}
+            style={{ opacity: isImageVisible ? 1 : 0, whiteSpace: 'nowrap'  }}
           >
             {weekNumber}
           </p>
