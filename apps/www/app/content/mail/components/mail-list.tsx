@@ -55,6 +55,7 @@ export function MailList({ items }: MailListProps) {
   const { config, setConfig, mails } = useMail();
   // console.log('原始邮件列表:', items.map(item => ({ id: item.id, archive: item.archive })));
   const [menuKey, setMenuKey] = useState(Date.now());
+  const [showArchived, setShowArchived] = useState(false);
 
   const sortItemsByDate = (a: Mail, b: Mail) => {
     // 将日期字符串转换为 Date 对象
@@ -71,7 +72,25 @@ export function MailList({ items }: MailListProps) {
     return text.replace(regex, "");
   }
 
-  const filteredItems = items.filter((item) => !item.archive);
+  useEffect(() => {
+    const handleArchiveClick = () => {
+      setShowArchived(true);
+    };
+
+    const handleShowAllMails = () => {
+      setShowArchived(false);
+    };
+
+    document.addEventListener('archiveClicked', handleArchiveClick);
+    document.addEventListener('showAllMails', handleShowAllMails);
+
+    return () => {
+      document.removeEventListener('archiveClicked', handleArchiveClick);
+      document.removeEventListener('showAllMails', handleShowAllMails);
+    };
+  }, []);
+
+  const filteredItems = items.filter((item) => showArchived ? item.archive : !item.archive);
 
   // 使用 removeHashtags 函数去除系统邮件标题和描述中的 ## 和 ### 符号
   filteredItems.forEach((item) => {

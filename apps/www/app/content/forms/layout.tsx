@@ -4,12 +4,11 @@
  */
 
 "use client"
-import ProfilePage from './page';
+import ProfilePage from './page'; // 假设这是 Profile 对应的组件
 import AccountPage from '@/app/content/forms/account/page';
 import AppearancePage from '@/app/content/forms/appearance/page';
 import NotificationsPage from '@/app/content/forms/notifications/page';
 import DisplayPage from '@/app/content/forms/display/page';
-import { AlignLeft } from 'lucide-react';
 
 import React, { useState } from 'react';
 import {Separator} from "@/registry/new-york/ui/separator";
@@ -38,33 +37,31 @@ export default function SettingsLayout() {
 
   return (
     <>
-      <div className="settings-layout-container md:hidden">
+      <div className="md:hidden">
+        {/* Mobile view can be handled here */}
       </div>
       <div className="hidden space-y-6 p-10 pb-16 md:block">
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">
-              Manage your account settings and set e-mail preferences.
-            </p>
+          <p className="text-muted-foreground">
+            Manage your account settings and set e-mail preferences.
+          </p>
+        </div>
+        <Separator className="my-6" />
+        <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
+          <aside className="-mx-4 lg:w-1/5">
             <SidebarNav
               items={[
-                {title: "Profile", onClick: () => setSelectedPage('Profile')},
-                {title: "Account", onClick: () => setSelectedPage('Account')},
-                {title: "Appearance", onClick: () => setSelectedPage('Appearance')},
-                {title: "Notifications", onClick: () => setSelectedPage('Notifications')},
-                {title: "Display", onClick: () => setSelectedPage('Display')},
+                { title: "Profile", onClick: () => setSelectedPage('Profile') },
+                { title: "Account", onClick: () => setSelectedPage('Account') },
+                { title: "Appearance", onClick: () => setSelectedPage('Appearance') },
+                { title: "Notifications", onClick: () => setSelectedPage('Notifications') },
+                { title: "Display", onClick: () => setSelectedPage('Display') },
               ]}
               onSelect={setSelectedPage} // 传递 setSelectedPage 作为 onSelect 回调
             />
-          </div>
-        </div>
-        <Separator className="my-6"/>
-        <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-          <aside className="-mx-4 lg:w-1/5">
-
           </aside>
-          <div className="flex-1 lg:max-w-2xl">
+          <div className="full flex-1 lg:max-w-2xl mx-auto">
             {renderPage()}
           </div>
         </div>

@@ -94,7 +94,7 @@ export function AccountForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="name"
@@ -124,7 +124,7 @@ export function AccountForm() {
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
+                        "w-full pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -169,7 +169,7 @@ export function AccountForm() {
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        "w-[200px] justify-between",
+                        " justify-between",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -182,7 +182,7 @@ export function AccountForm() {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
+                <PopoverContent className=" p-0">
                   <Command>
                     <CommandInput placeholder="Search language..." />
                     <CommandEmpty>No language found.</CommandEmpty>

@@ -43,7 +43,7 @@ import {
 import { TooltipProvider } from "@/registry/new-york/ui/tooltip"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/registry/new-york/ui/resizable"
 import { generateAndSubmitReport } from './weekReportLogic';
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {use51laAnalytics} from './use51LaAnalytics';
 import axios from 'axios';
 import { toast } from "@/registry/new-york/ui/use-toast"
@@ -68,17 +68,20 @@ interface MailProps {
 const calculateSidebarWidth = () => {
   const screenWidth = window.innerWidth;
   let defaultSidebarWidth;
-  // 首先根据屏幕宽度设置默认宽度
+
+  // 根据屏幕宽度设置默认宽度
   if (screenWidth > 1280) {
     defaultSidebarWidth = 14;
   } else {
     defaultSidebarWidth = 17;
   }
-  // 检查localStorage中是否有保存的宽度，且该宽度是否适用于当前屏幕尺寸
+
+  // 检查 localStorage 中是否有保存的宽度，且该宽度是否适用于当前屏幕尺寸
   const savedWidth = parseInt(localStorage.getItem('sidebarWidth') || '0', 10);
   if (savedWidth && ((screenWidth > 1280 && savedWidth <= 14) || (screenWidth <= 1280 && savedWidth >= 18))) {
     defaultSidebarWidth = savedWidth;
   }
+
   return defaultSidebarWidth;
 };
 
@@ -104,6 +107,7 @@ export function Mail({
     return savedShowSettings !== null ? savedShowSettings === 'true' : false;
   });
   const [sidebarWidth, setSidebarWidth] = React.useState(calculateSidebarWidth);
+  const [selectedLink, setSelectedLink] = useState('');
 
 
   // 这里计算未读邮件的数量
@@ -157,11 +161,13 @@ export function Mail({
   }, []);
 
 
-  const handleLayoutChange = (sizes: any[]) => {
-    const newWidth = sizes[0];
-    localStorage.setItem('sidebarWidth', newWidth.toString());
-  };
+  const handleCollapse = (collapsed: boolean | ((prevState: boolean) => boolean)) => {
+    setIsCollapsed(collapsed);
+    document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(collapsed)}`;
 
+    // 更新 localStorage 中的 showSettings 值
+    localStorage.setItem('showSettings', collapsed ? 'true' : 'false');
+  };
   const savedWidth = localStorage.getItem('sidebarWidth');
   const defaultWidth = savedWidth ? parseInt(savedWidth, 10) : defaultLayout[0]; // defaultLayout[0] 作为后备宽度
 
@@ -241,9 +247,11 @@ export function Mail({
                 title: "消息",
                 label: unreadMailsCount > 0 ? unreadMailsCount.toString() : undefined,
                 icon: Inbox,
-                variant: showSettings ? "ghost" : "default",
+                variant: selectedLink === '消息' || (!selectedLink && !showSettings) ? "default" : "ghost",
                 onClick: () => {
+                  setSelectedLink('消息');
                   setShowSettings(false);
+                  document.dispatchEvent(new CustomEvent('showAllMails'));
                 },
               },
               {
@@ -268,7 +276,12 @@ export function Mail({
                 title: "归档",
                 label: "",
                 icon: Archive,
-                variant: "ghost",
+                variant: selectedLink === '归档' ? "default" : "ghost",
+                onClick: () => {
+                  setSelectedLink('归档');
+                  // 通知 mail-list.tsx 用户点击了归档
+                  document.dispatchEvent(new CustomEvent('archiveClicked'));
+                },
               },
               {
                 title: "设置",
@@ -328,7 +341,8 @@ export function Mail({
             <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
               <Tabs defaultValue="all">
                 <div className="flex items-center px-4 py-2">
-                  <h1 className="text-xl font-bold">消息</h1>
+                  {selectedLink === '归档' && <h1 className="text-xl font-bold">已归档的消息</h1>}
+                  {selectedLink !== '归档' && <h1 className="text-xl font-bold">消息</h1>}
                   <TabsList className="ml-auto">
                     <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
                     <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>

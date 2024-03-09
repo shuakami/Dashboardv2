@@ -16,7 +16,10 @@ interface MailOptions {
   ccId?: string;
   isReplyFromHomepage?: boolean;
   currentViewingMailTitle?: string;
+  isFromAddSend?: boolean; // 新增属性
+  username?: string;
 }
+
 
 
 async function generateLabels(text: string): Promise<string> {
@@ -55,29 +58,23 @@ async function generateLabels(text: string): Promise<string> {
 }
 
 async function sendMail(options: MailOptions, callback: (success: boolean) => void): Promise<void> {
-  const { text, emailAddress, ccId = uuidv4(), isReplyFromHomepage, currentViewingMailTitle } = options;
-  let subject = "群发：欸嘿！"; // 默认主题
-
-  // 如果在首页进行回复，并且有当前查看的邮件标题，则设置回复主题
-  if (isReplyFromHomepage && currentViewingMailTitle) {
-    subject = `回复：${currentViewingMailTitle}`;
-  }
+  const { text, emailAddress, ccId = uuidv4(), isFromAddSend, currentViewingMailTitle, username } = options;  let subject = isFromAddSend ? currentViewingMailTitle : "群发：欸嘿！"; // 根据isFromAddSend使用适当的主题
 
   const labels = await generateLabels(text); // 生成labels
+  let name = isFromAddSend && username ? username : "Shuakami"; // 如果来自AddSend且提供了username，则使用它
 
+  // 如果标记了来自AddSend的请求，则邮件的name和subject应该根据AddSend的数据设置
   const postData = {
     data: {
-      name: "Shuakami",
-      subject,
+      name,
+      subject, // 直接使用传入的subject，避免"回复："前缀
       text,
       date: new Date().toISOString(),
       labels,
-      email: emailAddress,
-      CCID: uuidv4(),
+      email: emailAddress, // 使用固定的邮箱地址
+      CCID: ccId,
     }
   };
-
-  // console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
 
   try {
     const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {

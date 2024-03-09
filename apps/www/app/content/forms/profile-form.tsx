@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 "use client"
 
 import Link from "next/link"
@@ -78,7 +83,7 @@ export function ProfileForm() {
     toast({
       title: "You submitted the following values:",
       description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+        <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
         </pre>
       ),

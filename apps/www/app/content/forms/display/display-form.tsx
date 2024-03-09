@@ -72,7 +72,7 @@ export function DisplayForm() {
     toast({
       title: "You submitted the following values:",
       description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+        <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
         </pre>
       ),
@@ -81,7 +81,7 @@ export function DisplayForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-screen space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="items"

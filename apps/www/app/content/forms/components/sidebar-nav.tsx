@@ -3,45 +3,48 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/registry/new-york/ui/dropdown-menu";
+"use client"
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlignLeft } from "lucide-react";
-import {Button} from "@/registry/new-york/ui/button";
+import { useState } from "react";
+
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/registry/new-york/ui/button";
 
 // @ts-ignore
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
     title: string;
-    onClick: () => void;
+    onClick: () => void; // 使用 onClick 替代 href
   }[];
-  onSelect: (title: string) => void;
+  onSelect: (title: string) => void; // 新增 onSelect 回调函数
 }
 
 export function SidebarNav({ className, items, onSelect, ...props }: SidebarNavProps) {
+
   const pathname = usePathname();
 
   return (
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <AlignLeft className="cursor-pointer rounded p-1 text-muted-foreground hover:bg-gray-200 " size={30} /> {/* Adjusted styling for direct icon trigger */}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent  side="left" align="start" className="w-44">
-        {items.map((item, index) => (
-            <DropdownMenuGroup key={index}>
-              <DropdownMenuItem onSelect={() => onSelect(item.title)}>
-                {item.title}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <nav
+      className={cn(
+        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
+        className
+      )}
+      {...props}
+    >
+      {items.map((item) => (
+        <button
+          key={item.title}
+          onClick={() => onSelect(item.title)}
+          className={cn(
+            buttonVariants({variant: "ghost"}),
+            "w-full justify-start text-left",
+            "align-items-center"
+          )}
+        >
+          {item.title}
+        </button>
+      ))}
+    </nav>
   );
 }

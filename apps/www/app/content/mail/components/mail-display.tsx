@@ -38,7 +38,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/registry/new-york/ui/toggle-group";
-import {Archive, ArchiveX, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2,ArchiveRestore} from "lucide-react"
+import {Archive, Clock, Forward, MoreVertical, Reply, ReplyAll, Trash2, ArchiveRestore, FilePlus} from "lucide-react"
 import {DropdownMenuContent, DropdownMenuItem,} from "@/registry/default/ui/dropdown-menu"
 import {Avatar, AvatarFallback, AvatarImage,} from "@/registry/new-york/ui/avatar"
 import {Button} from "@/registry/new-york/ui/button"
@@ -59,6 +59,7 @@ import axios from "axios";
 import {addMinutes, addWeeks, startOfDay} from "date-fns";
 import { DeleteSelectMailRead } from "@/app/content/mail/components/mail-list";
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+import {AddSend} from "@/app/content/mail/components/addsend";
 
 setupAxiosInterceptors();
 
@@ -96,7 +97,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [showReportDrawer, setShowReportDrawer] = useState(false);
   // 文本域引用
   const textareaRef = React.useRef(null);
-
+  // 新增邮件模态框
+  const [isAddSendDialogOpen, setIsAddSendDialogOpen] = useState(false);
 
   useEffect(() => {
     // 确保代码运行在客户端
@@ -610,6 +612,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     clearTimeout(pressTimer); // 如果用户在2秒内释放按钮，则清除定时器
   };
 
+  const toggleAddSendDialog = () => {
+    setIsAddSendDialogOpen(!isAddSendDialogOpen);
+  };
+
   useEffect(() => {
     // 组件卸载时清理定时器
     return () => {
@@ -623,6 +629,17 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
+              <Button onClick={toggleAddSendDialog} variant="ghost" size="icon" disabled={!mail}>
+                <FilePlus className="h-4 w-4"/>
+                <span className="sr-only">ADD</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>自己发一个</TooltipContent>
+          </Tooltip>
+          {isAddSendDialogOpen && <AddSend  />}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button onClick={handleArchiveClick} variant="ghost" size="icon" disabled={!mail} >
                 <Archive className="h-4 w-4"/>
                 <span className="sr-only">Archive</span>
@@ -630,15 +647,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </TooltipTrigger>
             <TooltipContent>归档</TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <ArchiveX className="h-4 w-4"/>
-                <span className="sr-only">Move to junk</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>扔了</TooltipContent>
-          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button onClick={handleDeleteClick} variant="ghost" size="icon" disabled={!mail}>
