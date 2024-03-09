@@ -15,6 +15,10 @@ import {
   SelectValue,
 } from "@/registry/new-york/ui/select"
 
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+
+setupAxiosInterceptors();
+
 interface AccountSwitcherProps {
   isCollapsed: boolean
 }

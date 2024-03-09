@@ -18,7 +18,7 @@ export const generateAndSubmitReport = async () => {
   const overviewParams = {
     maskId: "3HelNpBlGrfK32c6",
     accessKey: "xpXGVoKAOj2ZVUMjMqKIME0I1mHeSwZw",
-    nonce: "1234",
+    nonce: "1023",
     timestamp: String(Date.now()), // 当前时间戳
     sign: "xpXGVoKAOj2ZVUMjMqKIME0I1mHeSwZw", // 低安全性校验，直接使用accessKey
   };

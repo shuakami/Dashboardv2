@@ -6,7 +6,9 @@
 import axios from 'axios';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
+setupAxiosInterceptors();
 // MailOptions 接口定义
 interface MailOptions {
   text: string;

@@ -58,6 +58,9 @@ import {useMail} from "@/app/content/mail/use-mail";
 import axios from "axios";
 import {addMinutes, addWeeks, startOfDay} from "date-fns";
 import { DeleteSelectMailRead } from "@/app/content/mail/components/mail-list";
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+
+setupAxiosInterceptors();
 
 interface MailDisplayProps {
   mail: Mail | null

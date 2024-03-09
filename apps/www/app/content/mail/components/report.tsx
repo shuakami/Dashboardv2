@@ -39,6 +39,10 @@ import Link from "next/link";
 import {useEffect, useState} from "react";
 import {ReloadIcon} from "@radix-ui/react-icons";
 
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+
+setupAxiosInterceptors();
+
 interface Mail {
   title: string;
   content: string;

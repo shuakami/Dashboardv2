@@ -6,7 +6,9 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {AspectRatio} from "@/registry/new-york/ui/aspect-ratio";
 import Image from "next/image"
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
+setupAxiosInterceptors();
 type Data = {
   [key: string]: string[];
 };

@@ -5,6 +5,9 @@
 
 import axios from 'axios';
 import React from 'react';
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+
+setupAxiosInterceptors();
 
 // Define types for the fetched data
 export type Mail = {
@@ -41,9 +44,9 @@ export async function fetchMails(): Promise<Mail[]> {
     subject: mail.attributes.subject,
     text: mail.attributes.text,
     date: mail.attributes.date,
-    read: mail.attributes.read, // Assuming all emails are unread initially; adjust as needed
+    read: mail.attributes.read,
     labels: mail.attributes.labels.split(','),
-    archive: mail.attributes.archive === "true" ? true : false, // Convert "true" string to boolean
+    archive: mail.attributes.archive === "true",
   }));
 }
 
@@ -52,7 +55,7 @@ export async function fetchAccounts(): Promise<Account[]> {
   return response.data.data.map((account: any) => ({
     label: account.attributes.label,
     email: account.attributes.email,
-    icon: account.attributes.icon, // 将 icon 改为字符串类型
+    icon: account.attributes.icon,
   }));
 }
 

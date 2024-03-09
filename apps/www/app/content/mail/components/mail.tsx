@@ -29,7 +29,7 @@ import { AccountSwitcher } from "@/app/content/mail/components/account-switcher"
 import { MailDisplay } from "@/app/content/mail/components/mail-display"
 import { MailList } from "@/app/content/mail/components/mail-list"
 import { Nav } from "@/app/content/mail/components/nav"
-import { Mail as MailType } from "@/app/content/mail/data" // 注意避免与Mail组件同名
+import { Mail as MailType } from "@/app/content/mail/data"
 import { useMail } from "@/app/content/mail/use-mail"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/registry/new-york/ui/separator"
@@ -47,7 +47,9 @@ import {useEffect} from "react";
 import {use51laAnalytics} from './use51LaAnalytics';
 import axios from 'axios';
 import { toast } from "@/registry/new-york/ui/use-toast"
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
+setupAxiosInterceptors();
 
 interface MailProps {
   accounts: {
@@ -177,16 +179,16 @@ export function Mail({
         }, new Date(0)); // 初始化为很早以前的日期
         console.log(`Latest report date: ${latestReportDate.toISOString()}`);
 
-        // 检查最新报告日期是否在7天内
+        // 检查最新报告日期是否在6天内
         // @ts-ignore
         const daysDifference = (new Date() - latestReportDate) / (1000 * 60 * 60 * 24);
         console.log(`Days since last report: ${daysDifference}`);
-        if (daysDifference < 7) {
-          console.log("The latest report was generated within the last 7 days.");
+        if (daysDifference < 6) {
+          console.log("The latest report was generated within the last 6 days.");
           return;
         }
 
-        // 如果超过7天，生成新的周报
+        // 如果超过6天，生成新的周报
         await generateAndSubmitReport();
         console.log('Weekly report generated and submitted successfully.');
         toast({

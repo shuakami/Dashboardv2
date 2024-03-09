@@ -4,7 +4,9 @@
  */
 
 import axios from 'axios';
+import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
+setupAxiosInterceptors();
 const BASE_URL = 'https://xn--7ovw36h.love/api';
 
 export async function updateMailReadStatus(id: string, read: boolean, callback: (success: boolean) => void): Promise<void> {
