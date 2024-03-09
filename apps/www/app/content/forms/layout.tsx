@@ -61,7 +61,7 @@ export default function SettingsLayout() {
               onSelect={setSelectedPage} // 传递 setSelectedPage 作为 onSelect 回调
             />
           </aside>
-          <div className="full flex-1 lg:max-w-2xl mx-auto">
+          <div className="full mx-auto flex-1 lg:max-w-2xl">
             {renderPage()}
           </div>
         </div>
