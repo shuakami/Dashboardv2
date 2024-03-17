@@ -5,35 +5,61 @@
 
 import { useEffect } from 'react';
 
-export const use51laAnalytics = () => {
+export const use51laAndRecaptcha = () => {
   useEffect(() => {
-    let initScriptAdded = false; // 新增一个标记，标记初始化脚本是否被添加到了<head>
+    let init51laScriptAdded = false; // 标记 51la 初始化脚本是否被添加到了<head>
+    let initRecaptchaScriptAdded = false; // 标记 reCAPTCHA v3 初始化脚本是否被添加到了<head>
 
-    const existingScript = document.getElementById('LA_COLLECT');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = '//sdk.51.la/js-sdk-pro.min.js';
-      script.id = 'LA_COLLECT';
-      script.charset = 'UTF-8';
-      script.async = true;
+    // 检查当前路径是否为/login
+    const isLoginPath = window.location.pathname === '/login';
 
-      const initScript = document.createElement('script');
-      initScript.textContent = `LA.init({id:"3HelNpBlGrfK32c6",ck:"3HelNpBlGrfK32c6"});`;
+    // 加载 51la 脚本
+    const existing51laScript = document.getElementById('LA_COLLECT');
+    if (!existing51laScript) {
+      const script51la = document.createElement('script');
+      script51la.src = '//sdk.51.la/js-sdk-pro.min.js';
+      script51la.id = 'LA_COLLECT';
+      script51la.charset = 'UTF-8';
+      script51la.async = true;
 
-      script.onload = () => {
-        document.head.appendChild(initScript);
-        initScriptAdded = true; // 当初始化脚本被添加时，更新标记状态
-      };
+      const init51laScript = document.createElement('script');
+      init51laScript.textContent = `LA.init({id:"3HelNpBlGrfK32c6",ck:"3HelNpBlGrfK32c6"});`;
 
-      document.head.appendChild(script);
-
-      // 清理函数中加入检查
-      return () => {
-        document.head.removeChild(script);
-        if (initScriptAdded && document.head.contains(initScript)) { // 仅当初始化脚本被添加并且当前仍在<head>中时，尝试移除
-          document.head.removeChild(initScript);
+      script51la.onload = () => {
+        if (!init51laScriptAdded) {
+          document.head.appendChild(init51laScript);
+          init51laScriptAdded = true;
         }
       };
+
+      document.head.appendChild(script51la);
     }
+
+    // 仅在访问/login页面时，加载 reCAPTCHA v3 脚本
+    if (isLoginPath && !document.getElementById('recaptcha_v3')) {
+      const scriptRecaptcha = document.createElement('script');
+      scriptRecaptcha.src = 'https://recaptcha.net/recaptcha/api.js?render=6LcpUW4pAAAAAGMEM0quB2kUhtRpX5HWj9PolOcT';
+      scriptRecaptcha.id = 'recaptcha_v3';
+      scriptRecaptcha.async = true;
+
+      document.head.appendChild(scriptRecaptcha);
+
+      scriptRecaptcha.onload = () => {
+        initRecaptchaScriptAdded = true; // reCAPTCHA 脚本加载后更新状态，如果需要初始化代码可以在这里添加
+      };
+    }
+
+    // 清理函数
+    return () => {
+      if (init51laScriptAdded && document.head.contains(init51laScript)) {
+        document.head.removeChild(init51laScript);
+      }
+      if (existing51laScript && document.head.contains(existing51laScript)) {
+        document.head.removeChild(existing51laScript);
+      }
+      if (isLoginPath && document.getElementById('recaptcha_v3') && document.head.contains(document.getElementById('recaptcha_v3'))) {
+        document.head.removeChild(document.getElementById('recaptcha_v3'));
+      }
+    };
   }, []);
 };

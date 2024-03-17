@@ -42,7 +42,7 @@ export default function MailPage() {
           {/* 覆盖层 */}
           <div
             className="absolute left-0 top-0 z-0 min-h-full min-w-full bg-white bg-opacity-75 dark:bg-black dark:bg-opacity-75"></div>
-          <div className="relative z-10 flex items-center p-2">
+          <div className="relative z-10 items-center p-2">
             <Mail
               accounts={accounts}
               mails={mails}

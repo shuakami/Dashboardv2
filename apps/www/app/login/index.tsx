@@ -18,7 +18,7 @@ import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
 import {Spinner} from "@nextui-org/react";
 import { authenticateToken, verifyDynamicCode } from './auth';
-
+import {use51laAndRecaptcha} from '@/app/content/mail/components/use51LaAnalytics';
 import { XIcon } from '@heroicons/react/outline';
 
 import {
@@ -69,7 +69,7 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
     const [showLoading, setShowLoading] = useState(false);
     // 回首页
     const [redirectToHome, setRedirectToHome] = useState(false);
-
+  use51laAndRecaptcha();
     // 多语言内容
     const content = {
         zh: {

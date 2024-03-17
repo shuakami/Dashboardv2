@@ -129,7 +129,8 @@ export function MailList({ items }: MailListProps) {
       <ContextMenuTrigger asChild>
         <ScrollArea className="h-screen">
           <div className="flex flex-col gap-2 p-4 pt-0">
-            {filteredItems.map((item) => (
+            {filteredItems.length > 0 ? (
+             filteredItems.map((item) => (
               <button
                 key={item.id}
                 className={cn(
@@ -175,7 +176,13 @@ export function MailList({ items }: MailListProps) {
                   </div>
                 ) : null}
               </button>
-            ))}
+              ))
+            ) : (
+            // 当没有邮件时的提示，确保占满容器宽度
+            <div className="flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent">
+              <span className="text-sm text-gray-500">没有内容(～￣▽￣)～</span>
+            </div>
+            )}
           </div>
         </ScrollArea>
       </ContextMenuTrigger>

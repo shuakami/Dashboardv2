@@ -7,6 +7,7 @@ import React from 'react';
 import { Modal, notification } from 'antd';
 import { keys } from '@/app/config/key';
 import axios from 'axios';
+import {use51laAndRecaptcha} from '@/app/content/mail/components/use51LaAnalytics';
 // @ts-ignore
 import Cookies from 'js-cookie';
 
@@ -15,6 +16,7 @@ const dynamicCodes = new Map();
 
 // 持久化存储
 const LOCAL_STORAGE_LOCK_KEY = 'tokenAttemptLocks';
+declare const grecaptcha: any;
 
 const MAX_ATTEMPTS = 5;
 const LOCK_DURATION = 2 * 60 * 1000; // 2分钟锁定
@@ -203,6 +205,46 @@ export const verifyDynamicCode = async (token: string, password: string) => {
     });
     return false; // 直接返回失败，不进行后续验证
   }
+
+  try {
+    // 动态加载 reCAPTCHA 脚本并获取 token
+    const recaptchaToken = await new Promise((resolve, reject) => {
+      grecaptcha.ready(() => {
+        grecaptcha.execute('6LcpUW4pAAAAAGMEM0quB2kUhtRpX5HWj9PolOcT', { action: 'login' }).then(resolve).catch(reject);
+      });
+    });
+
+    // 将 token 发送到后端进行验证
+    const verificationResponse = await axios.post('/api/verifyRecaptcha', {
+      token: recaptchaToken,
+    });
+
+    // 检查后端验证结果
+    if (!verificationResponse.data.success) {
+      console.error('reCAPTCHA verification failed:', verificationResponse.data.message);
+      Modal.error({
+        title: '验证失败',
+        content: 'reCAPTCHA 验证未通过，请稍后再试。',
+        okButtonProps: { style: { display: 'none' } },
+        autoFocusButton: null,
+        keyboard: true,
+        maskClosable: true,
+      });
+      return false;
+    }
+  } catch (error) {
+    console.error('Error during reCAPTCHA verification:', error);
+    Modal.error({
+      title: '验证错误',
+      content: '无法完成 reCAPTCHA 验证，请检查网络连接并稍后再试。',
+      okButtonProps: { style: { display: 'none' } },
+      autoFocusButton: null,
+      keyboard: true,
+      maskClosable: true,
+    });
+    return false;
+  }
+
 
   try {
     // 尝试进行登录

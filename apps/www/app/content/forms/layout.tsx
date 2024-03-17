@@ -4,7 +4,7 @@
  */
 
 "use client"
-import ProfilePage from './page'; // 假设这是 Profile 对应的组件
+import ProfilePage from './page';
 import AccountPage from '@/app/content/forms/account/page';
 import AppearancePage from '@/app/content/forms/appearance/page';
 import NotificationsPage from '@/app/content/forms/notifications/page';

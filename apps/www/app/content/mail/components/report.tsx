@@ -70,6 +70,8 @@ export function ReportDrawer({ mail, open, onClose }) {
   const [showResult, setShowResult] = React.useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [showPenaltyReason, setShowPenaltyReason] = useState(false);
+
 
   // 生成基于邮件标题和内容的唯一键
   const generateUniqueKeyForMail = (mail: Mail) => {
@@ -449,7 +451,26 @@ export function ReportDrawer({ mail, open, onClose }) {
                           {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
                             "请查看人工复审结果Tab"
                           ) : (
-                            reportResult?.penaltyReason
+                            <>
+                              {/* 判断 penaltyReason 长度决定是否显示按钮 */}
+                              {(typeof reportResult?.penaltyReason === 'string' && reportResult.penaltyReason.trim().length > 6) ? (
+                                !showPenaltyReason && (
+                                  <button onClick={() => setShowPenaltyReason(true)}>
+                                    点我查看
+                                  </button>
+                                )
+                              ) : (
+                                <div>
+                                  {reportResult?.penaltyReason}
+                                </div>
+                              )}
+                              {/* 根据 showPenaltyReason 控制详情的显示与隐藏 */}
+                              {showPenaltyReason && (
+                                <div style={{ display: showPenaltyReason ? 'block' : 'none' }}>
+                                  {reportResult?.penaltyReason}
+                                </div>
+                              )}
+                            </>
                           )}
                         </td>
                       </tr>
@@ -489,7 +510,7 @@ async function generateLabels(text: string): Promise<string> {
     messages: [
       {
         role: 'system',
-        content: '请判断以下内容是否违规，并注意区分违规的严重性。对于不文明用语、脏话，不会导致封号（封号时长为0天）。只有严重违规行为，才会导致封号。请严格按照以下格式回复：违规/不违规|[具体违规内容]|[违规原因]|[封号时长]'
+        content: '请判断以下内容是否违规，并注意区分违规的严重性。对于不文明用语、脏话，不会导致封号（封号时长为0天）。只有严重违规行为，才会导致封号。请严格按照以下格式回复，不要少掉一个：违规/不违规|[具体违规内容]|[违规原因]|[封号时长]'
       },
       {
         role: 'user',
@@ -500,7 +521,7 @@ async function generateLabels(text: string): Promise<string> {
 
   try {
     const response = await axios.post(url, JSON.stringify(data), {headers});
-   // console.log("GPT Response:", response.data);
+   // console.log("Response:", response.data);
     const labels = response.data.choices[0].message.content;
     return labels;
   } catch (error) {

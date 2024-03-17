@@ -10,17 +10,12 @@ import {
   Archive,
   HeartPulse,
   MessageSquare,
-  File,
   Inbox,
   MessagesSquare,
-  PenBox,
   Search,
   Settings,
   Activity,
-  Send,
-  ShoppingCart,
   Trash2,
-  Users2,
   Calendar,
   GaugeCircle
 } from "lucide-react"
@@ -44,10 +39,12 @@ import { TooltipProvider } from "@/registry/new-york/ui/tooltip"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/registry/new-york/ui/resizable"
 import { generateAndSubmitReport } from './weekReportLogic';
 import {useEffect, useState} from "react";
-import {use51laAnalytics} from './use51LaAnalytics';
+import {use51laAndRecaptcha} from './use51LaAnalytics';
 import axios from 'axios';
 import { toast } from "@/registry/new-york/ui/use-toast"
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+import {Navtop} from "@/app/content/mail/components/navtop";
+import KamiUI from "@/app/Kami";
 
 setupAxiosInterceptors();
 
@@ -64,29 +61,6 @@ interface MailProps {
 }
 
 
-// 计算侧边栏宽度的函数
-const calculateSidebarWidth = () => {
-  const screenWidth = window.innerWidth;
-  let defaultSidebarWidth;
-
-  // 根据屏幕宽度设置默认宽度
-  if (screenWidth > 1280) {
-    defaultSidebarWidth = 14;
-  } else {
-    defaultSidebarWidth = 17;
-  }
-
-  // 检查 localStorage 中是否有保存的宽度，且该宽度是否适用于当前屏幕尺寸
-  const savedWidth = parseInt(localStorage.getItem('sidebarWidth') || '0', 10);
-  if (savedWidth && ((screenWidth > 1280 && savedWidth <= 14) || (screenWidth <= 1280 && savedWidth >= 18))) {
-    defaultSidebarWidth = savedWidth;
-  }
-
-  return defaultSidebarWidth;
-};
-
-
-
 export function Mail({
                        accounts,
                        mails: mailsProp, // 更改名称以避免与useMail钩子的mails冲突
@@ -98,7 +72,7 @@ export function Mail({
   // 正确地解构useMail钩子返回的对象
   const { config, setConfig, mails } = useMail();
   const [searchQuery, setSearchQuery] = React.useState('');
-  use51laAnalytics();
+  use51laAndRecaptcha();
   const { refreshMails } = useMail();
   const [showSettings, setShowSettings] = React.useState(() => {
     // 在useState初始化时从localStorage中读取showSettings的值
@@ -106,7 +80,6 @@ export function Mail({
     // 如果localStorage中有值，则返回该值的布尔类型，否则默认为false
     return savedShowSettings !== null ? savedShowSettings === 'true' : false;
   });
-  const [sidebarWidth, setSidebarWidth] = React.useState(calculateSidebarWidth);
   const [selectedLink, setSelectedLink] = useState('');
 
 
@@ -135,41 +108,6 @@ export function Mail({
   }, [showSettings]);
 
 
-  useEffect(() => {
-    // 如果localStorage中没有宽度记录，则认为是新用户
-    const isNewUser = !localStorage.getItem('sidebarWidth');
-    if (isNewUser) {
-      // 根据屏幕宽度决定侧边栏宽度
-      const screenWidth = window.innerWidth;
-      const defaultSidebarWidth = screenWidth > 1280 ? 14 : 18; // 1280大屏幕和小屏幕的分界线
-      localStorage.setItem('sidebarWidth', defaultSidebarWidth.toString());
-    }
-  }, []);
-
-
-
-  // 监听窗口尺寸变化
-  React.useEffect(() => {
-    const handleResize = () => {
-      const newWidth = calculateSidebarWidth();
-      console.log(`Resizing: New sidebar width is ${newWidth}`);
-      setSidebarWidth(newWidth);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-
-  const handleCollapse = (collapsed: boolean | ((prevState: boolean) => boolean)) => {
-    setIsCollapsed(collapsed);
-    document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(collapsed)}`;
-
-    // 更新 localStorage 中的 showSettings 值
-    localStorage.setItem('showSettings', collapsed ? 'true' : 'false');
-  };
-  const savedWidth = localStorage.getItem('sidebarWidth');
-  const defaultWidth = savedWidth ? parseInt(savedWidth, 10) : defaultLayout[0]; // defaultLayout[0] 作为后备宽度
 
   useEffect(() => {
     const checkAndGenerateReport = async () => {
@@ -201,7 +139,7 @@ export function Mail({
           title: "周报生成完毕",
           description: "🐱好耶！！请看邮件列表！新的周报！",
         });
-        refreshMails();
+        await refreshMails();
       } catch (error) {
         console.error('Error during report checking or generation:', error);
       }
@@ -212,34 +150,44 @@ export function Mail({
 
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <>
+      <div className="fixed left-0 top-0 z-50 w-full shadow-none"> {/* 确保Navtop覆盖全宽，且在z轴上较高 */}
+        <Navtop
+          unreadMailsCount={unreadMailsCount}
+          setSelectedLink={setSelectedLink}
+          setShowSettings={setShowSettings}
+        />
+      </div>
+      <div className="pt-7">
       <ResizablePanelGroup
         direction="horizontal"
         onLayout={(sizes: number[]) => {
           document.cookie = `react-resizable-panels:layout=${JSON.stringify(
             sizes
-          )}`
+          )}`;
         }}
         className="h-full max-h-[940px] items-stretch "
       >
+
         <ResizablePanel
-          defaultSize={sidebarWidth}
+          defaultSize={defaultLayout[14]}
+          className="hidden"
           collapsedSize={navCollapsedSize}
           collapsible={true}
           minSize={9}
           maxSize={18}
           onCollapse={(collapsed) => {
-            setIsCollapsed(collapsed)
+            setIsCollapsed(collapsed);
             document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
               collapsed
-            )}`
+            )}`;
           }}
-          className={cn(isCollapsed && "min-w-[50px] flex-1 transition-all duration-300 ease-in-out")}
         >
-          <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]': 'px-2')}>
-            <AccountSwitcher isCollapsed={isCollapsed} />
+
+          <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]' : 'px-2')}>
+            <AccountSwitcher isCollapsed={isCollapsed}/>
           </div>
-          <Separator />
+          <Separator/>
           <Nav
             isCollapsed={isCollapsed}
             links={[
@@ -292,9 +240,9 @@ export function Mail({
                   setShowSettings(true);
                 },
               },
-            ]}
-          />
-          <Separator />
+            ]}/>
+          <Separator/>
+
           <Nav
             isCollapsed={isCollapsed}
             links={[
@@ -328,21 +276,21 @@ export function Mail({
                 icon: HeartPulse,
                 variant: "ghost",
               },
-            ]}
-          />
+            ]}/>
+
         </ResizablePanel>
-        <ResizableHandle withHandle/>
+        <ResizableHandle withHandle className="h-0 w-0 opacity-0"/>
+
         {showSettings ? (
-          <ResizablePanel defaultSize={defaultLayout[1]} minSize={15} className="min-h-screen">
-            <SettingsLayout />
-          </ResizablePanel>
+            <SettingsLayout/>
         ) : (
           <>
+            <KamiUI/>
             <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
               <Tabs defaultValue="all">
                 <div className="flex items-center px-4 py-2">
-                  {selectedLink === '归档' && <h1 className="text-xl font-bold">已归档的消息</h1>}
-                  {selectedLink !== '归档' && <h1 className="text-xl font-bold">消息</h1>}
+                  {selectedLink === '归档' && <h1 className="text-xl font-bold">&nbsp;已归档的消息</h1>}
+                  {selectedLink !== '归档' && <h1 className="text-xl font-bold">&nbsp;消息</h1>}
                   <TabsList className="ml-auto">
                     <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
                     <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>
@@ -368,13 +316,17 @@ export function Mail({
                   <MailList items={filteredMails.filter((item) => !item.read)}/>
                 </TabsContent>
               </Tabs>
-            </ResizablePanel><ResizableHandle withHandle/><ResizablePanel defaultSize={defaultLayout[2]}>
+            </ResizablePanel>
+            <ResizableHandle withHandle/>
+            <ResizablePanel defaultSize={defaultLayout[2]}>
             <MailDisplay
               mail={mails.find((item) => item.id === config.selected) || null}/>
           </ResizablePanel>
           </>
         )}
       </ResizablePanelGroup>
-    </TooltipProvider>
+      </div>
+    </>
+
   )
 }
