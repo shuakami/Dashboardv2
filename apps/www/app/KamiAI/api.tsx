@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { performAction } from './action';
 
-export const sendToAPI = async (description: any, id?: any) => {
+export const sendToAPI = async (id: any, description: any) => {
   try {
     const data = {
       max_tokens: 600,

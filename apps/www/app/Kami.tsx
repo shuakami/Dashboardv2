@@ -22,17 +22,6 @@ const KamiUI = () => {
     return result;
   };
 
-  const handleInputChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-    setInputValue(event.target.value); // 更新状态以反映输入框的内容
-  };
-
-  const handleSendClick = async () => {
-    const result = await sendToAPI(inputValue);
-    console.log(result);
-    // 发送完成后，改变状态以触发KamiHero组件的响应
-    setNotificationTrigger(!notificationTrigger);
-  };
-
 
   const hour = new Date().getHours();
   let timeOfDay;
@@ -97,42 +86,31 @@ const KamiUI = () => {
 
 
   return (
-    <div className="mx-auto mt-1 flex h-full max-w-xl flex-col border-r border-solid p-1" style={{height: '100vh'}}>
-      <div className="flex-1 overflow-auto">
+    <div className="mx-auto mt-1 flex h-full max-w-xl flex-col border-r border-solid p-1" style={{ minHeight: '100vh' }}>
+      <div className="flex flex-1 flex-col overflow-auto">
         <div className="flex items-center px-4 py-2">
-          <h1 className="text-xl font-bold" style={{marginTop: '-4px'}}>&nbsp;KAMI {'>'}</h1>
+          <h1 className="text-xl font-bold" style={{ marginTop: '-4px' }}>&nbsp;KAMI {'>'}</h1>
         </div>
-        <div className="mt-1 border-t p-5" style={{marginTop: '4.4px'}}>
+        <div className="mt-1 flex-1 overflow-auto border-t p-5" style={{ marginTop: '4.4px' }}>
           <motion.h2
             animate={welcomeAnimation()}
-            transition={{duration: 4, repeat: Infinity, repeatType: 'reverse'}}
+            transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}
             className="mb-2 text-4xl font-bold"
           >
             欢迎。
           </motion.h2>
           <motion.h2
             animate={timeOfDayAnimation()}
-            transition={{duration: 4.5, repeat: Infinity, repeatType: 'reverse'}}
+            transition={{ duration: 4.5, repeat: Infinity, repeatType: 'reverse' }}
             className="mb-4 text-4xl font-bold "
           >
             {timeOfDay}
           </motion.h2>
-          <KamiHero onNotificationClick={handleNotificationClick} trigger={notificationTrigger} className={undefined} />        </div>
-      </div>
-      <div className="p-5">
-        <div className="grid h-full w-full gap-1.5">
-          <Textarea onChange={handleInputChange} placeholder="Type your message here." id="Kimi"/>
-          <Button
-            size="sm"
-            className="ml-auto"
-            onClick={handleSendClick}
-          >
-            发送
-          </Button>
+          <KamiHero onNotificationClick={handleNotificationClick} trigger={notificationTrigger} className={undefined} />
         </div>
       </div>
     </div>
   );
-}
+};
 
   export default KamiUI;

@@ -168,7 +168,6 @@ export function Mail({
         }}
         className="h-full max-h-[940px] items-stretch "
       >
-
         <ResizablePanel
           defaultSize={defaultLayout[14]}
           className="hidden"
@@ -183,7 +182,6 @@ export function Mail({
             )}`;
           }}
         >
-
           <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]' : 'px-2')}>
             <AccountSwitcher isCollapsed={isCollapsed}/>
           </div>

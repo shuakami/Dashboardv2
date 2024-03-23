@@ -4,12 +4,12 @@
  */
 
 import React from 'react';
-import { Modal, notification } from 'antd';
+import {message, Modal} from 'antd';
 import { keys } from '@/app/config/key';
 import axios from 'axios';
-import {use51laAndRecaptcha} from '@/app/content/mail/components/use51LaAnalytics';
 // @ts-ignore
 import Cookies from 'js-cookie';
+import FingerprintJS, { load } from '@fingerprintjs/fingerprintjs';
 
 // 缓存动态验证码相关信息
 const dynamicCodes = new Map();
@@ -21,20 +21,10 @@ declare const grecaptcha: any;
 const MAX_ATTEMPTS = 5;
 const LOCK_DURATION = 2 * 60 * 1000; // 2分钟锁定
 const BRUTE_FORCE_ATTEMPT_THRESHOLD = 15; // 爆破尝试阈值
-const BRUTE_FORCE_LOCK_DURATION = 1314520666; // 特殊爆破防护锁定时间
+const BRUTE_FORCE_LOCK_DURATION = 114.514; // 特殊爆破防护锁定时间
 const REQUEST_THRESHOLD = 5; // 请求阈值
 const MONITOR_WINDOW = 60 * 1000; // 1分钟监控窗口
 const BRUTE_FORCE_MONITOR_WINDOW = 5 * 60 * 1000; // 5分钟爆破监控窗口
-
-function simpleHash(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36).toUpperCase();
-}
 
 const getGlobalLockInfo = () => {
   const lockInfo = Cookies.get(LOCAL_STORAGE_LOCK_KEY);
@@ -242,6 +232,30 @@ export const verifyDynamicCode = async (token: string, password: string) => {
       keyboard: true,
       maskClosable: true,
     });
+    return false;
+  }
+
+  const fp = await load();
+  const result = await fp.get();
+  const fingerprint = result.visitorId; // 这是浏览器的唯一指纹
+
+  try {
+    // 发送IP验证请求，携带用户名(token)和浏览器指纹
+    const ipVerificationResponse = await axios.post('/api/verifyIp', {
+      username: token, // 用户名直接使用token
+      fingerprint: fingerprint
+    });
+
+
+    if (ipVerificationResponse.status === 200) {
+      message.success('您的登录信息已通过因素验证，ByteFreeze守护您的账户安全。');
+    } else {
+      message.error('验证未通过，请确保您是在授权的设备上操作。');
+      return false;
+    }
+
+  } catch (error) {
+    message.error('验证未通过，请确保您是在授权的设备上操作。');
     return false;
   }
 

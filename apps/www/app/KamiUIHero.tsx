@@ -18,6 +18,7 @@ import {
 import { Switch } from "@/registry/new-york/ui/switch"
 import {useEffect, useRef, useState} from "react";
 import { CSSTransition } from 'react-transition-group';
+import {Textarea} from "@/registry/new-york/ui/textarea";
 
 const notifications = [
   {
@@ -37,7 +38,7 @@ const notifications = [
   },
   {
     title: "快速发送",
-    description: "帮我给admin@sdjz.wiki发个邮件 内容随便",
+    description: "给admin@sdjz.wiki发个邮件",
     id:"sendmail[admin@sdjz.wiki]",
   },
 ]
@@ -64,6 +65,8 @@ export function KamiHero({ className, onNotificationClick, trigger, ...props }) 
     }
   };
 
+
+
   useEffect(() => {
     console.log("tt")
     // 仅在trigger变化时设置isVisible为true
@@ -88,7 +91,7 @@ export function KamiHero({ className, onNotificationClick, trigger, ...props }) 
 
 
   return (
-    <div className={cn("relative mt-10 w-[380px] overflow-hidden rounded-xl", className)} {...props}>
+    <div className={cn("relative mt-10 w-[350px] overflow-hidden rounded-xl", className)} {...props}>
       {isLoading ? (
         <Card className="w-full bg-transparent backdrop-blur-md">
           <CardHeader>
@@ -146,6 +149,7 @@ export function KamiHero({ className, onNotificationClick, trigger, ...props }) 
                       </p>
                     </div>
                   </div>
+
                 ))}
               </div>
             </CardContent>
