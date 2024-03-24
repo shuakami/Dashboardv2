@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   console.log(`解析到的用户IP地址: ${ip}`);
 
   try {
-    if (ip === '::1' || ip === '127.0.0.1') {
+    if (ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1') {
       console.log('检测到本地回环地址, 使用外部API查询公网IP');
       const publicIpResponse = await axios.get('https://ip.useragentinfo.com/jsonp');
       const publicIpMatch = publicIpResponse.data.match(/callback\((.*)\);?/);

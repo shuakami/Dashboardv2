@@ -9,6 +9,7 @@ export const use51laAndRecaptcha = () => {
   useEffect(() => {
     let init51laScriptAdded = false; // 标记 51la 初始化脚本是否被添加到了<head>
     let initRecaptchaScriptAdded = false; // 标记 reCAPTCHA v3 初始化脚本是否被添加到了<head>
+    let initMatomoScriptAdded = false; // 标记 Matomo 初始化脚本是否被添加到了<head>
 
     // 检查当前路径是否为/login
     const isLoginPath = window.location.pathname === '/login';
@@ -45,8 +46,33 @@ export const use51laAndRecaptcha = () => {
       document.head.appendChild(scriptRecaptcha);
 
       scriptRecaptcha.onload = () => {
-        initRecaptchaScriptAdded = true; // reCAPTCHA 脚本加载后更新状态，如果需要初始化代码可以在这里添加
+        initRecaptchaScriptAdded = true;
       };
+    }
+
+    // 加载 Matomo 脚本
+    if (!document.getElementById('matomo_script')) {
+      const scriptMatomo = document.createElement('script');
+      scriptMatomo.id = 'matomo_script';
+      scriptMatomo.async = true;
+      const scriptText = `
+        var _paq = window._paq = window._paq || [];
+        _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+        _paq.push(["setCookieDomain", "*.analytics.sdjz.wiki"]);
+        _paq.push(["setDomains", ["*.analytics.sdjz.wiki"]]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+          var u="//analytics.sdjz.wiki/";
+          _paq.push(['setTrackerUrl', u+'matomo.php']);
+          _paq.push(['setSiteId', '1']);
+          var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+          g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+      `;
+      scriptMatomo.textContent = scriptText;
+      document.head.appendChild(scriptMatomo);
+      initMatomoScriptAdded = true;
     }
 
     // 清理函数
@@ -59,6 +85,9 @@ export const use51laAndRecaptcha = () => {
       }
       if (isLoginPath && document.getElementById('recaptcha_v3') && document.head.contains(document.getElementById('recaptcha_v3'))) {
         document.head.removeChild(document.getElementById('recaptcha_v3'));
+      }
+      if (initMatomoScriptAdded && document.getElementById('matomo_script')) {
+        document.head.removeChild(document.getElementById('matomo_script'));
       }
     };
   }, []);

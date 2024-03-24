@@ -21,9 +21,6 @@ export default function MailPage() {
 
   return (
     <>
-      <div className="md:hidden">
-
-      </div>
         <div className="relative flex h-full flex-col overflow-hidden">
           {/* 白色主题视频 */}
           <video autoPlay loop muted

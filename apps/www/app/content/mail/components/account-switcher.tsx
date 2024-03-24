@@ -3,24 +3,24 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
-import * as React from "react"
+import * as React from "react";
 import { fetchAccounts } from '@/app/content/mail/data';
-
-import { cn } from "@/lib/utils"
+import { CSSTransition } from 'react-transition-group';
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/registry/new-york/ui/select"
-
+} from "@/registry/new-york/ui/select";
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
+import { Skeleton } from "@/registry/default/ui/skeleton";
 
 setupAxiosInterceptors();
 
 interface AccountSwitcherProps {
-  isCollapsed?: boolean
+  isCollapsed?: boolean;
 }
 
 interface Account {
@@ -53,43 +53,54 @@ export function AccountSwitcher({ isCollapsed }: AccountSwitcherProps) {
     loadAccounts();
   }, []); // 空数组意味着这个effect只在组件挂载时运行一次
 
-  if (loading) {
-    return <div>Loading...</div>; // 或者任何其他加载指示器
-  }
-
   return (
-    <Select defaultValue={selectedAccount} onValueChange={setSelectedAccount}>
-      <SelectTrigger
-        className={cn(
-          "ml-2 flex items-center gap-2 rounded-none border-none shadow-none [&>span]:line-clamp-1 [&>span]:flex [&>span]:w-full [&>span]:items-center [&>span]:gap-1 [&>span]:truncate [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0",
-          isCollapsed &&
-          "flex h-9 w-9 shrink-0 items-center justify-center p-0 [&>span]:w-auto [&>svg]:hidden"
-        )}
-        aria-label="Select account"
-      >
-        <SelectValue placeholder="Select an account">
-          {renderAccountIcon(accounts.find((account) => account.email === selectedAccount)?.icon)}
-          <span className={cn("ml-2", isCollapsed && "hidden")}>
-            {
-              accounts.find((account) => account.email === selectedAccount)
-                ?.label
-            }
-          </span>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {accounts.map((account) => (
-          <SelectItem key={account.email} value={account.email}>
-            <div className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground">
-              {renderAccountIcon(account.icon)}
-              {account.email}
+    <>
+      {loading ? (
+        <CSSTransition in={loading} timeout={300} classNames="fade" unmountOnExit>
+          <div className="ml-5 flex items-center gap-2 rounded-none border-none shadow-none">
+            <Skeleton className="h-5 w-5 rounded-full" />
+            <div className="flex items-center gap-1">
+              <Skeleton className="mr-2 h-4 w-12" />
             </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+            <Skeleton className="mr-6 h-4 w-4" />
+          </div>
+        </CSSTransition>
+      ) : (
+        <CSSTransition in={!loading} timeout={300} classNames="fade" unmountOnExit>
+          <div>
+            <Select defaultValue={selectedAccount} onValueChange={setSelectedAccount}>
+              <SelectTrigger
+                className={cn(
+                  "ml-2 flex items-center gap-2 rounded-none border-none shadow-none focus:outline-none [&>span]:line-clamp-1 [&>span]:flex [&>span]:w-full [&>span]:items-center [&>span]:gap-1 [&>span]:truncate [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0",
+                  isCollapsed && "flex h-9 w-9 shrink-0 items-center justify-center p-0 [&>span]:w-auto [&>svg]:hidden"
+                )}
+                aria-label="Select account"
+              >
+                <SelectValue placeholder="Select an account">
+                  {renderAccountIcon(accounts.find((account) => account.email === selectedAccount)?.icon)}
+                  <span className={cn("ml-2", isCollapsed && "hidden")}>
+                  {accounts.find((account) => account.email === selectedAccount)?.label}
+                </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.email} value={account.email}>
+                    <div className="flex items-center gap-3 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground">
+                      {renderAccountIcon(account.icon)}
+                      {account.email}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CSSTransition>
+      )}
+    </>
   );
 }
+
 
 function renderAccountIcon(icon: string | React.ReactNode) {
   if (typeof icon === 'string') {

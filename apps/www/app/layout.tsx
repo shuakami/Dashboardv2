@@ -27,8 +27,6 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
-
-
       <html lang="zh" suppressHydrationWarning>
       <head />
       <body
@@ -43,13 +41,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         enableSystem
         disableTransitionOnChange
       >
-
-        <main className="flex w-full flex-1 items-center justify-center">
-          <div className="w-full ">
+        <main className="w-full flex-1 items-center justify-center">
             {children}
-          </div>
         </main>
-
         <TailwindIndicator />
         <ThemeSwitcher />
         <NewYorkToaster />
@@ -58,7 +52,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </ThemeProvider>
       </body>
       </html>
-
         </>
   )
 }

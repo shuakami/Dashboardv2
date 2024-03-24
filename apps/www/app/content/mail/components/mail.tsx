@@ -45,7 +45,9 @@ import { toast } from "@/registry/new-york/ui/use-toast"
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 import {Navtop} from "@/app/content/mail/components/navtop";
 import KamiUI from "@/app/Kami";
-
+import { CSSTransition } from 'react-transition-group';
+import "@/styles/transitions.css"
+import DashboardPage from "@/app/content/dashboard/page";
 setupAxiosInterceptors();
 
 interface MailProps {
@@ -74,13 +76,18 @@ export function Mail({
   const [searchQuery, setSearchQuery] = React.useState('');
   use51laAndRecaptcha();
   const { refreshMails } = useMail();
+  const [selectedLink, setSelectedLink] = useState('');
+
+
+  const [showDashboard, setShowDashboard] = React.useState(() => {
+    const savedShowDashboard = localStorage.getItem('showDashboard');
+    return savedShowDashboard !== null ? savedShowDashboard === 'true' : false;
+  });
+
   const [showSettings, setShowSettings] = React.useState(() => {
-    // 在useState初始化时从localStorage中读取showSettings的值
     const savedShowSettings = localStorage.getItem('showSettings');
-    // 如果localStorage中有值，则返回该值的布尔类型，否则默认为false
     return savedShowSettings !== null ? savedShowSettings === 'true' : false;
   });
-  const [selectedLink, setSelectedLink] = useState('');
 
 
   // 这里计算未读邮件的数量
@@ -106,6 +113,11 @@ export function Mail({
   useEffect(() => {
     localStorage.setItem('showSettings', showSettings.toString());
   }, [showSettings]);
+
+  React.useEffect(() => {
+    // 监听showDashboard状态的变化，并将其保存到localStorage
+    localStorage.setItem('showDashboard', showDashboard.toString());
+  }, [showDashboard]);
 
 
 
@@ -151,180 +163,96 @@ export function Mail({
 
   return (
     <>
-      <div className="fixed left-0 top-0 z-50 w-full shadow-none"> {/* 确保Navtop覆盖全宽，且在z轴上较高 */}
-        <Navtop
-          unreadMailsCount={unreadMailsCount}
-          setSelectedLink={setSelectedLink}
-          setShowSettings={setShowSettings}
-        />
-      </div>
+      <CSSTransition in={true} timeout={300} classNames="fade" appear>
+        <div className="fixed left-0 top-0 z-50 w-full shadow-none">
+          <Navtop
+            unreadMailsCount={unreadMailsCount}
+            setSelectedLink={setSelectedLink}
+            setShowSettings={setShowSettings}
+            setShowDashboard={setShowDashboard}
+          />
+        </div>
+      </CSSTransition>
       <div className="pt-7">
-      <ResizablePanelGroup
-        direction="horizontal"
-        onLayout={(sizes: number[]) => {
-          document.cookie = `react-resizable-panels:layout=${JSON.stringify(
-            sizes
-          )}`;
-        }}
-        className="h-full max-h-[940px] items-stretch "
-      >
-        <ResizablePanel
-          defaultSize={defaultLayout[14]}
-          className="hidden"
-          collapsedSize={navCollapsedSize}
-          collapsible={true}
-          minSize={9}
-          maxSize={18}
-          onCollapse={(collapsed) => {
-            setIsCollapsed(collapsed);
-            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-              collapsed
-            )}`;
+        <ResizablePanelGroup
+          direction="horizontal"
+          onLayout={(sizes: number[]) => {
+            document.cookie = `react-resizable-panels:layout=${JSON.stringify(sizes)}`;
           }}
+          className="h-full items-stretch "
         >
-          <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]' : 'px-2')}>
-            <AccountSwitcher isCollapsed={isCollapsed}/>
-          </div>
-          <Separator/>
-          <Nav
-            isCollapsed={isCollapsed}
-            links={[
-              {
-                title: "消息",
-                label: unreadMailsCount > 0 ? unreadMailsCount.toString() : undefined,
-                icon: Inbox,
-                variant: selectedLink === '消息' || (!selectedLink && !showSettings) ? "default" : "ghost",
-                onClick: () => {
-                  setSelectedLink('消息');
-                  setShowSettings(false);
-                  document.dispatchEvent(new CustomEvent('showAllMails'));
-                },
-              },
-              {
-                title: "运维",
-                label: "23",
-                icon: MessageSquare,
-                variant: "ghost",
-              },
-              {
-                title: "日程",
-                label: "",
-                icon: Calendar,
-                variant: "ghost",
-              },
-              {
-                title: "回收站",
-                label: "",
-                icon: Trash2,
-                variant: "ghost",
-              },
-              {
-                title: "归档",
-                label: "",
-                icon: Archive,
-                variant: selectedLink === '归档' ? "default" : "ghost",
-                onClick: () => {
-                  setSelectedLink('归档');
-                  // 通知 mail-list.tsx 用户点击了归档
-                  document.dispatchEvent(new CustomEvent('archiveClicked'));
-                },
-              },
-              {
-                title: "设置",
-                label: "",
-                icon: Settings,
-                variant: showSettings ? "default" : "ghost",
-                onClick: () => {
-                  setShowSettings(true);
-                },
-              },
-            ]}/>
-          <Separator/>
-
-          <Nav
-            isCollapsed={isCollapsed}
-            links={[
-              {
-                title: "更新",
-                label: "342",
-                icon: AlertCircle,
-                variant: "ghost",
-              },
-              {
-                title: "数据",
-                label: "8",
-                icon: Activity,
-                variant: "ghost",
-              },
-              {
-                title: "Github消息",
-                label: "128",
-                icon: MessagesSquare,
-                variant: "ghost",
-              },
-              {
-                title: "控制台",
-                label: "",
-                icon: GaugeCircle,
-                variant: "ghost",
-              },
-              {
-                title: "安全",
-                label: "",
-                icon: HeartPulse,
-                variant: "ghost",
-              },
-            ]}/>
-
-        </ResizablePanel>
-        <ResizableHandle withHandle className="h-0 w-0 opacity-0"/>
-
-        {showSettings ? (
-            <SettingsLayout/>
-        ) : (
-          <>
-            <KamiUI/>
-            <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
-              <Tabs defaultValue="all">
-                <div className="flex items-center px-4 py-2">
-                  {selectedLink === '归档' && <h1 className="text-xl font-bold">&nbsp;已归档的消息</h1>}
-                  {selectedLink !== '归档' && <h1 className="text-xl font-bold">&nbsp;消息</h1>}
-                  <TabsList className="ml-auto">
-                    <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
-                    <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>
-                  </TabsList>
-                </div>
-                <Separator/>
-                <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <form>
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
-                      <Input
-                        placeholder="Search"
-                        className="pl-8"
-                        value={searchQuery}
-                        onChange={handleSearchChange}/>
-                    </div>
-                  </form>
-                </div>
-                <TabsContent value="all" className="m-0">
-                  <MailList items={filteredMails}/>
-                </TabsContent>
-                <TabsContent value="unread" className="m-0">
-                  <MailList items={filteredMails.filter((item) => !item.read)}/>
-                </TabsContent>
-              </Tabs>
-            </ResizablePanel>
-            <ResizableHandle withHandle/>
-            <ResizablePanel defaultSize={defaultLayout[2]}>
-            <MailDisplay
-              mail={mails.find((item) => item.id === config.selected) || null}/>
+          <ResizablePanel
+            defaultSize={defaultLayout[14]}
+            className="hidden"
+            collapsedSize={navCollapsedSize}
+            collapsible={true}
+            minSize={9}
+            maxSize={18}
+            onCollapse={(collapsed) => {
+              setIsCollapsed(collapsed);
+              document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(collapsed)}`;
+            }}
+          >
+            <div className={cn("flex h-[52px] items-center justify-center", isCollapsed ? 'h-[52px]' : 'px-2')}>
+              <AccountSwitcher isCollapsed={isCollapsed}/>
+            </div>
+            <Separator/>
+            <Separator/>
           </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
+          <ResizableHandle withHandle className="h-0 w-0 opacity-0"/>
+          {showDashboard ? (
+            <DashboardPage />
+          ) : (
+          showSettings ? (
+            <SettingsLayout/>
+          ) : (
+            <>
+              <CSSTransition in={true} timeout={300} classNames="fade" appear>
+                <KamiUI/>
+              </CSSTransition>
+              <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
+                <Tabs defaultValue="all">
+                  <div className="flex items-center px-4 py-2">
+                    {selectedLink === '归档' && <h1 className="text-xl font-bold">&nbsp;已归档的消息</h1>}
+                    {selectedLink !== '归档' && <h1 className="text-xl font-bold">&nbsp;消息</h1>}
+                    <TabsList className="ml-auto">
+                      <TabsTrigger value="all" className="text-zinc-600 dark:text-zinc-200">所有信息</TabsTrigger>
+                      <TabsTrigger value="unread" className="text-zinc-600 dark:text-zinc-200">未读信息</TabsTrigger>
+                    </TabsList>
+                  </div>
+                  <Separator/>
+                  <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <form>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
+                        <Input
+                          placeholder="Search"
+                          className="pl-8"
+                          value={searchQuery}
+                          onChange={handleSearchChange}/>
+                      </div>
+                    </form>
+                  </div>
+                  <TabsContent value="all" className="m-0">
+                    <MailList items={filteredMails}/>
+                  </TabsContent>
+                  <TabsContent value="unread" className="m-0">
+                    <MailList items={filteredMails.filter((item) => !item.read)}/>
+                  </TabsContent>
+                </Tabs>
+              </ResizablePanel>
+              <ResizableHandle withHandle/>
+              <CSSTransition in={true} timeout={300} classNames="fade" appear>
+                <ResizablePanel defaultSize={defaultLayout[2]}>
+                  <MailDisplay
+                    mail={mails.find((item) => item.id === config.selected) || null}/>
+                </ResizablePanel>
+              </CSSTransition>
+            </>
+          )
+          )}
+        </ResizablePanelGroup>
       </div>
     </>
-
   )
 }

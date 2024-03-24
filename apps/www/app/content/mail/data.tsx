@@ -34,20 +34,40 @@ export type Contact = {
   email: string;
 };
 
-// Async functions to fetch data from the API
+// Update:分页数据获取
 export async function fetchMails(): Promise<Mail[]> {
-  const response = await axios.get('https://xn--7ovw36h.love/api/mails');
-  return response.data.data.map((mail: any) => ({
-    id: mail.id,
-    name: mail.attributes.name,
-    email: mail.attributes.email,
-    subject: mail.attributes.subject,
-    text: mail.attributes.text,
-    date: mail.attributes.date,
-    read: mail.attributes.read,
-    labels: mail.attributes.labels.split(','),
-    archive: mail.attributes.archive === "true",
-  }));
+  let allMails: Mail[] = [];
+  let page = 1;
+  const pageSize = 25;
+  let pageCount = 1;
+
+  while (page <= pageCount) {
+    const response = await axios.get(`https://xn--7ovw36h.love/api/mails`, {
+      params: {
+        pagination: { page, pageSize },
+      },
+    });
+
+    const fetchedMails = response.data.data.map((mail: any) => ({
+      id: mail.id,
+      name: mail.attributes.name,
+      email: mail.attributes.email,
+      subject: mail.attributes.subject,
+      text: mail.attributes.text,
+      date: mail.attributes.date,
+      read: mail.attributes.read,
+      labels: mail.attributes.labels.split(','),
+      archive: mail.attributes.archive === "true",
+    }));
+
+    allMails = allMails.concat(fetchedMails);
+
+    // 更新页码和总页数
+    pageCount = response.data.meta.pagination.pageCount;
+    page += 1;
+  }
+
+  return allMails;
 }
 
 export async function fetchAccounts(): Promise<Account[]> {

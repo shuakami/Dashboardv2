@@ -3,6 +3,27 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
+/* 设置全局HTML和body样式 */
+
+
+/* 针对Next.js的根容器样式 */
+#_next {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* 面板容器样式 */
+.dashboard-container {
+  height: 100% !important; /* 继承父元素高度 */
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  width: 100% !important;
+  min-height: 100% !important;
+}
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -87,12 +108,11 @@
 .system-message {
   /* 添加边框颜色 */
   border-color: #fffefe;
-
   /* 添加背景颜色 */
   background-color: rgba(71, 136, 224, 0.37);
-
-
 }
+
+
 
 .context-menu {
   position: absolute;
@@ -413,4 +433,63 @@ body {
   border-radius: 16px;
   backdrop-filter: blur(60px);
   background-color: rgba(255, 255, 255, 0.75); /* 调整背景透明度 */
+}
+/* 进入过渡的开始状态 */
+.fade-enter, .fade-exit-active {
+  opacity: 0;
+}
+
+/* 进入过渡的结束状态 */
+.fade-enter-active, .fade-exit {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+button:focus {
+  outline: none !important;
+  background-color: rgba(199, 199, 199, 0);
+  border-color: rgba(255, 255, 255, 0) !important;
+}
+
+
+.fade-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+.fade-exit {
+  opacity: 1;
+}
+.fade-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}
+.chart-enter {
+  opacity: 0;
+}
+
+.chart-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.chart-exit {
+  opacity: 1;
+}
+
+.chart-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+:root {
+  --tooltip-bg-color: rgba(234, 233, 233, 0.8);
+}
+
+[data-theme="dark"] {
+  --tooltip-bg-color: #27272A;
 }

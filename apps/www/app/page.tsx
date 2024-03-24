@@ -24,8 +24,6 @@ import dynamic from 'next/dynamic';
 import MailPage from "@/app/content/mail/page"
 export default function IndexPage() {
   return (
-        <div className=" ">
           <MailPage />
-        </div>
   )
 }
