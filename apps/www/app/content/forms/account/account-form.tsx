@@ -4,13 +4,15 @@
  */
 
 "use client"
-
+import Image from 'next/image';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CalendarIcon, CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import axios from 'axios';
+// @ts-ignore
+import Cookies from 'js-cookie';
 import { cn } from "@/lib/utils"
 import { Button } from "@/registry/new-york/ui/button"
 import { Calendar } from "@/registry/new-york/ui/calendar"
@@ -37,6 +39,7 @@ import {
   PopoverTrigger,
 } from "@/registry/new-york/ui/popover"
 import { toast } from "@/registry/new-york/ui/use-toast"
+import {useEffect, useState} from "react";
 
 const languages = [
   { label: "English", value: "en" },
@@ -51,62 +54,95 @@ const languages = [
 ] as const
 
 const accountFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Name must not be longer than 30 characters.",
-    }),
-  dob: z.date({
-    required_error: "A date of birth is required.",
-  }),
-  language: z.string({
-    required_error: "Please select a language.",
-  }),
-})
+  icon: z.string().url().optional(),
+  dob: z.date().optional(),
+  language: z.string().optional(),
+});
 
-type AccountFormValues = z.infer<typeof accountFormSchema>
-
-// This can come from your database or API.
-const defaultValues: Partial<AccountFormValues> = {
-  // name: "Your name",
-  // dob: new Date("2023-01-23"),
-}
+type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 export function AccountForm() {
+  const [userData, setUserData] = useState(null);
+  const [userId, setUserId] = useState(null); // 用于保存用户ID
+
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const jwt = Cookies.get('jwt');
+      if (jwt) {
+        try {
+          const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
+          setUserId(data.id); // 保存用户ID
+          setUserData(data);
+          form.reset({
+            icon: data.icon,
+            dob: new Date(data.birthtime),
+            language: data.language,
+          });
+        } catch (error) {
+          console.error('Failed to fetch user data', error);
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
+
+
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues,
-  })
+    defaultValues: {
+      // @ts-ignore
+      icon: userData?.icon,
+      // @ts-ignore
+      dob: userData ? new Date(userData.birthtime) : undefined,
+      // @ts-ignore
+      language: userData?.language,
+    },
+  });
 
-  function onSubmit(data: AccountFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
-  }
+  const onSubmit = async (data: AccountFormValues) => {
+    const jwt = Cookies.get('jwt');
+    if (jwt && userId) {
+      try {
+        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, data, {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        });
+        toast({ title: "Account updated successfully" });
+      } catch (error) {
+        console.error('Failed to update account', error);
+        toast({ title: "Error updating account" });
+      }
+    }
+  };
+
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="name"
+          name="icon"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Avatar</FormLabel>
               <FormControl>
-                <Input placeholder="Your name" {...field} />
+                <div>
+                  <Input type="url" placeholder="Avatar URL" {...field} />
+                       {field.value && (
+                         <div className="mt-4" style={{ width: '100px', height: '100px', position: 'relative', borderRadius: '50%', overflow: 'hidden' }}>
+                           <Image src={field.value} alt="Avatar" layout="fill" objectFit="cover" />
+                         </div>
+                       )}
+                </div>
               </FormControl>
               <FormDescription>
-                This is the name that will be displayed on your profile and in
-                emails.
+                Enter the URL of the image you like to use as your avatar.
               </FormDescription>
               <FormMessage />
             </FormItem>

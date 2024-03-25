@@ -493,3 +493,17 @@ button:focus {
 [data-theme="dark"] {
   --tooltip-bg-color: #27272A;
 }
+.setting-enter {
+  opacity: 0;
+}
+.setting-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.setting-exit {
+  opacity: 1;
+}
+.setting-exit-active {
+  opacity: 0;
+  transition: opacity 150ms;
+}

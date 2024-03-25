@@ -43,7 +43,7 @@ export function Navtop({ unreadMailsCount, setSelectedLink, setShowSettings,setS
   };
 
   return (
-    <Menubar className="rounded-none border-t-0 shadow-none">
+    <Menubar style={{backdropFilter: 'blur(7px)'}} className="rounded-none border-t-0 bg-white/5 shadow-none dark:bg-black/5">
       <div className="flex h-[52px] items-center justify-center">
         <AccountSwitcher/>
       </div>

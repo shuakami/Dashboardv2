@@ -5,10 +5,14 @@
 
 "use client"
 
+import React, {useEffect, useState} from 'react';
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
+// @ts-ignore
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/registry/new-york/ui/button"
@@ -31,6 +35,13 @@ import {
 } from "@/registry/new-york/ui/select"
 import { Textarea } from "@/registry/new-york/ui/textarea"
 import { toast } from "@/registry/new-york/ui/use-toast"
+
+interface EmailOption {
+  value: string; // 确保value是字符串类型
+  label: string;
+}
+
+
 
 const profileFormSchema = z.object({
   username: z
@@ -58,19 +69,12 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-  bio: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
-  ],
-}
-
 export function ProfileForm() {
+  const [emailOptions, setEmailOptions] = useState<EmailOption[]>([]);
+  const [userId, setUserId] = useState<string | null>(null); // 保存用户ID
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
     mode: "onChange",
   })
 
@@ -79,16 +83,64 @@ export function ProfileForm() {
     control: form.control,
   })
 
-  function onSubmit(data: ProfileFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
-  }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const jwt = Cookies.get('jwt');
+      if (jwt) {
+        try {
+          const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+            headers: { Authorization: `Bearer ${jwt}` }
+          });
+
+          setUserId(data.id.toString()); // 保存用户ID
+          setEmailOptions([
+            { value: data.email, label: data.email }, // 假设邮件地址存储在email字段
+          ]);
+          form.reset({
+            username: data.username,
+            email: data.email,
+            bio: data.bio,
+            urls: data.urls ? data.urls.split(',').map((url: string) => ({ value: url })) : [],
+          });
+        } catch (error) {
+          console.error('Failed to fetch user data', error);
+        }
+      }
+    };
+    fetchUserData();
+  }, [form]);
+
+
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    const jwt = Cookies.get('jwt');
+    if (jwt && userId) {
+      // 从data.urls数组中提取每个对象的value属性，并将它们连接成一个字符串
+      const urlsAsString = data.urls?.map(urlObj => urlObj.value).join(',') || '';
+      const submitData = {
+        ...data,
+        urls: urlsAsString,
+      };
+
+      try {
+        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
+          headers: {
+            Authorization: `Bearer ${jwt}`
+          }
+        });
+        toast({
+          title: "Profile updated successfully",
+        });
+      } catch (error) {
+        console.error('Failed to update profile', error);
+        toast({
+          title: "Error updating profile",
+          description: "An error occurred while updating your profile. Please try again later.",
+        });
+      }
+    }
+  };
+
 
   return (
     <Form {...form}>
@@ -100,7 +152,7 @@ export function ProfileForm() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="Name" {...field} />
               </FormControl>
               <FormDescription>
                 This is your public display name. It can be your real name or a
@@ -123,14 +175,15 @@ export function ProfileForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
+                  {emailOptions.map((email) => (
+                    <SelectItem key={email.value} value={email.value}>
+                      {email.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormDescription>
-                You can manage verified email addresses in your{" "}
-                <Link href="/examples/forms">email settings</Link>.
+                You can manage verified email addresses in your email settings
               </FormDescription>
               <FormMessage />
             </FormItem>
