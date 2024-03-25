@@ -21,6 +21,8 @@ import { CalendarDateRangePicker } from "@/app/content/dashboard/components/date
 import  EnhancedWebsiteHourlyTraffic from "./hero/analytics"
 import WebsiteHourlyTraffic from "./hero/analytics";
 import {UptimeStatusCards} from "./hero/status";
+import {AITable} from "./hero/ai";
+import DataAnalysisComponent from "./hero/aiapi";
 
 export default function DashboardPage() {
   return (
@@ -50,13 +52,13 @@ export default function DashboardPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="h-screen space-y-4">
+              <AITable/>
               <UptimeStatusCards/>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <WebsiteHourlyTraffic />
-
               </div>
-
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <DataAnalysisComponent/>
               </div>
             </TabsContent>
           </Tabs>

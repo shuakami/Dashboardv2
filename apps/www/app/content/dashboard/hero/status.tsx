@@ -55,13 +55,13 @@ export function UptimeStatusCards() {
         {statuses.map(({ name, status }) => (
           <div
             key={name}
-            className={`flex flex-col justify-between rounded-lg px-4 py-3 text-black shadow-sm dark:text-white ${
-              status === 'active' ? 'bg-green-500/60 dark:bg-green-500/70' : 'bg-red-500/60 dark:bg-red-500/60'
-            }`}
+            className="flex flex-col justify-between rounded-lg border px-4 py-3 text-black shadow-sm dark:text-white"
           >
             <div className="flex items-start justify-between">
               <span className="text-sm font-medium">{name}</span>
-              <span className="text-md">{status === 'active' ? '↑' : '↓'}</span>
+              <span className={status === 'active' ? 'text-green-500' : 'text-red-500'}>
+              {status === 'active' ? '↑' : '↓'}
+            </span>
             </div>
             <div className="text-2xl font-bold">
               {status === 'active' ? '正常' : '异常'}
@@ -71,4 +71,4 @@ export function UptimeStatusCards() {
       </div>
     </div>
   );
-}
+};
