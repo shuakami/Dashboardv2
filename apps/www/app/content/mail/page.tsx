@@ -2,7 +2,13 @@
  * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
+
 "use client"
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 
 // @ts-ignore
 import Cookies from 'js-cookie';
@@ -14,20 +20,7 @@ import React, {useEffect, useState} from "react";
 import Loading from "@/app/content/mail/loading";
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 export default function MailPage() {
-  const [defaultLayout, setDefaultLayout] = useState(undefined);
-  const [defaultCollapsed, setDefaultCollapsed] = useState(undefined);
-  useEffect(() => {
-    const layoutCookie = Cookies.get("react-resizable-panels:layout");
-    const collapsedCookie = Cookies.get("react-resizable-panels:collapsed");
 
-    if (layoutCookie) {
-      setDefaultLayout(JSON.parse(layoutCookie));
-    }
-    if (collapsedCookie) {
-      setDefaultCollapsed(JSON.parse(collapsedCookie));
-    }
-    // 其他依赖于客户端环境的代码放在这里
-  }, []);
 
     const [theme, setTheme] = useState('light');
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -112,6 +105,7 @@ export default function MailPage() {
   }, [updateFlag]);
 
   const fetchUserSettings = async () => {
+    if (typeof window !== "undefined") {
     const jwt = Cookies.get('jwt');
     if (jwt) {
       try {
@@ -123,6 +117,7 @@ export default function MailPage() {
       } catch (error) {
         console.error('Failed to fetch user settings:', error);
       }
+    }
     }
   };
 
@@ -252,8 +247,7 @@ export default function MailPage() {
           <Mail
             accounts={accounts}
             mails={mails}
-            defaultLayout={defaultLayout}
-            defaultCollapsed={defaultCollapsed}
+            defaultCollapsed={true}
             navCollapsedSize={4}
           />
         </div>
