@@ -89,7 +89,7 @@ export default function MailPage() {
                style={{filter: 'blur(70px)', objectFit: 'cover'}}
                onLoadedMetadata={handleVideoLoad}
                onError={handleVideoError}>
-          <source src={lightVideo} type="video/mp4"/>
+
           Your browser does not support the video tag.
         </video>
         {/* 黑色主题视频 */}
@@ -98,7 +98,7 @@ export default function MailPage() {
                style={{filter: 'blur(70px)', objectFit: 'cover'}}
                onLoadedMetadata={handleVideoLoad}
                onError={handleVideoError}>
-          <source src={darkVideo} type="video/mp4"/>
+
           Your browser does not support the video tag.
         </video>
 
