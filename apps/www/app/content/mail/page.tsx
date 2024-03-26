@@ -11,7 +11,7 @@
 
 
 // @ts-ignore
-import Cookies from 'js-cookie';
+
 import axios from 'axios';
 import { Mail } from "@/app/content/mail/components/mail"
 // @ts-ignore
@@ -29,35 +29,7 @@ export default function MailPage() {
   const [updateFlag, setUpdateFlag] = useState(false);
   const [cookies, setCookies] = useState(null);
 
-  useEffect(() => {
-    const cookieUserSettings = Cookies.get('cookie-usersettings');
-    if (cookieUserSettings) {
-      const settings = JSON.parse(cookieUserSettings);
-      setUserSettings(settings);
 
-      if (settings.themecolor && settings.themecolor !== 'default') {
-        // 创建脚本元素
-        const scriptElement = document.createElement('script');
-        scriptElement.src = `/color/${settings.themecolor}.js`;
-        scriptElement.async = true; // 确保脚本异步加载
-
-        // 加载成功或失败的日志
-        scriptElement.onload = () => {
-          console.log(`${settings.themecolor} color scheme applied successfully.`);
-        };
-        scriptElement.onerror = () => {
-          console.error(`Failed to load color scheme: ${settings.themecolor}`);
-        };
-
-        // 将脚本元素添加到文档中
-        document.head.appendChild(scriptElement); // 或者document.body.appendChild(scriptElement);
-      }
-
-      adjustPageStyles(settings);
-    } else {
-      fetchUserSettings();
-    }
-  }, []);
 
 
 
@@ -93,31 +65,7 @@ export default function MailPage() {
     background: '',
   });
 
-  useEffect(() => {
-    const cookieUserSettings = Cookies.get('cookie-usersettings');
-    if (cookieUserSettings) {
-      const settings = JSON.parse(cookieUserSettings);
-      setUserSettings(settings);
-      adjustPageStyles(settings);
-    } else {
-      fetchUserSettings();
-    }
-  }, [updateFlag]);
 
-  const fetchUserSettings = async () => {
-    const jwt = Cookies.get('jwt');
-    if (jwt) {
-      try {
-        const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
-          headers: { Authorization: `Bearer ${jwt}` },
-        });
-        Cookies.set('cookie-usersettings', JSON.stringify(data), { expires: 7 }); // 保存 7 天
-        setUserSettings(data);
-      } catch (error) {
-        console.error('Failed to fetch user settings:', error);
-      }
-    }
-  };
 
 // 动态加载字体
   const loadFont = async (font: any) => {
