@@ -33,15 +33,6 @@ export default function MailPage() {
 
 
 
-// 视频加载成功
-  const handleVideoLoad = () => {
-    setVideoLoaded(true);
-    setVideoVisible(true); // 视频加载后设置视频为可见
-  };
-// 视频加载失败
-  const handleVideoError = () => {
-    setVideoLoaded(false);
-  };
 
 
 
@@ -59,36 +50,15 @@ export default function MailPage() {
         >
           <div>
         {/* 白色主题视频 */}
-        {!videoLoaded && <div
-          className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none bg-white dark:bg-black"></div>}
+       <div
+          className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none bg-white dark:bg-black"></div>
 
-        <video autoPlay loop muted
-               className={`absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden ${videoLoaded ? '' : 'hidden'}`}
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}
-               onLoadedMetadata={handleVideoLoad}
-               onError={handleVideoError}>
 
-          Your browser does not support the video tag.
-        </video>
-        {/* 黑色主题视频 */}
-        <video autoPlay loop muted
-               className={`absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block ${videoLoaded ? '' : 'hidden'}`}
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}
-               onLoadedMetadata={handleVideoLoad}
-               onError={handleVideoError}>
-
-          Your browser does not support the video tag.
-        </video>
 
           </div>
         </CSSTransition>
 
-        {/* 覆盖层 */}
-        <div
-          className={`absolute left-0 top-0 z-0 min-h-full min-w-full ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
-          style={{
-          }}
-        ></div>
+
 
         <div className="relative z-10 items-center p-2">
           <Mail
