@@ -13,13 +13,62 @@ import { Mail } from "@/app/content/mail/components/mail"
 import { accounts, mails } from "@/app/content/mail/data"
 import React, {useEffect, useState} from "react";
 import Loading from "@/app/content/mail/loading";
-
+import { SwitchTransition, CSSTransition } from 'react-transition-group';
 export default function MailPage() {
   const layoutCookie = Cookies.get("react-resizable-panels:layout");
   const collapsedCookie = Cookies.get("react-resizable-panels:collapsed");
   const [theme, setTheme] = useState('light');
   const defaultLayout = layoutCookie ? JSON.parse(layoutCookie) : undefined;
   const defaultCollapsed = collapsedCookie ? JSON.parse(collapsedCookie) : undefined;
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false); // 用于追踪视频是否可见
+  const [data, setData] = useState(null);
+  const [updateFlag, setUpdateFlag] = useState(false);
+
+
+  useEffect(() => {
+    const cookieUserSettings = Cookies.get('cookie-usersettings');
+    if (cookieUserSettings) {
+      const settings = JSON.parse(cookieUserSettings);
+      setUserSettings(settings);
+
+      if (settings.themecolor && settings.themecolor !== 'default') {
+        // 创建脚本元素
+        const scriptElement = document.createElement('script');
+        scriptElement.src = `/color/${settings.themecolor}.js`;
+        scriptElement.async = true; // 确保脚本异步加载
+
+        // 加载成功或失败的日志
+        scriptElement.onload = () => {
+          console.log(`${settings.themecolor} color scheme applied successfully.`);
+        };
+        scriptElement.onerror = () => {
+          console.error(`Failed to load color scheme: ${settings.themecolor}`);
+        };
+
+        // 将脚本元素添加到文档中
+        document.head.appendChild(scriptElement); // 或者document.body.appendChild(scriptElement);
+      }
+
+      adjustPageStyles(settings);
+    } else {
+      fetchUserSettings();
+    }
+  }, []);
+
+
+
+// 视频加载成功
+  const handleVideoLoad = () => {
+    setVideoLoaded(true);
+    setVideoVisible(true); // 视频加载后设置视频为可见
+  };
+// 视频加载失败
+  const handleVideoError = () => {
+    setVideoLoaded(false);
+  };
+
+
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -50,7 +99,7 @@ export default function MailPage() {
     } else {
       fetchUserSettings();
     }
-  }, []);
+  }, [updateFlag]);
 
   const fetchUserSettings = async () => {
     const jwt = Cookies.get('jwt');
@@ -108,9 +157,24 @@ export default function MailPage() {
 
     loadFont(settings.font);
 
-    // 调整背景透明度
-    const overlayOpacityClass = settings.backgroundtransparency ? `bg-opacity-${settings.backgroundtransparency}` : 'bg-opacity-75';
-    document.documentElement.style.setProperty('--overlay-opacity', overlayOpacityClass);
+// 解析背景透明度和模糊度
+    let blurValue = '70px'; // 默认模糊值
+    if (settings.backgroundtransparency) {
+      const [transparency, blur] = settings.backgroundtransparency.split('|');
+      if (blur && blur !== 'default') {
+        const blurPercent = parseInt(blur);
+        blurValue = `${Math.min(blurPercent, 300)}px`; // 将百分比转换为px值，并确保不超过300px
+      }
+      // 设置透明度的样式，透明度处理逻辑保持不变，因为你提到不需要调整
+      const overlayOpacity = transparency === 'default' ? 0.75 : parseInt(transparency) / 100;
+      document.documentElement.style.setProperty('--overlay-opacity', overlayOpacity.toString());
+    }
+
+    // 应用模糊度到视频
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+      video.style.filter = `blur(${blurValue})`;
+    });
   };
 
 
@@ -134,24 +198,41 @@ export default function MailPage() {
   return (
     <>
       <div className="relative flex h-full flex-col overflow-hidden">
+        <CSSTransition
+          in={videoVisible} // 根据视频是否可见来触发动画
+          timeout={270}
+          classNames="fade"
+          appear // 使用 appear prop 来确保动画在初次渲染时触发
+        >
+          <div>
         {/* 白色主题视频 */}
+        {!videoLoaded && <div
+          className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none bg-white dark:bg-black"></div>}
+
         <video autoPlay loop muted
-               className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden"
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}>
+               className={`absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden ${videoLoaded ? '' : 'hidden'}`}
+               style={{filter: 'blur(70px)', objectFit: 'cover'}}
+               onLoadedMetadata={handleVideoLoad}
+               onError={handleVideoError}>
           <source src={lightVideo} type="video/mp4"/>
           Your browser does not support the video tag.
         </video>
         {/* 黑色主题视频 */}
         <video autoPlay loop muted
-               className="absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block"
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}>
+               className={`absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block ${videoLoaded ? '' : 'hidden'}`}
+               style={{filter: 'blur(70px)', objectFit: 'cover'}}
+               onLoadedMetadata={handleVideoLoad}
+               onError={handleVideoError}>
           <source src={darkVideo} type="video/mp4"/>
           Your browser does not support the video tag.
         </video>
 
+          </div>
+        </CSSTransition>
+
         {/* 覆盖层 */}
         <div
-          className={`absolute left-0 top-0 z-0 min-h-full min-w-full bg-white dark:bg-black`}
+          className={`absolute left-0 top-0 z-0 min-h-full min-w-full ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
           style={{
             opacity: userSettings.backgroundtransparency ? parseInt(userSettings.backgroundtransparency) / 100 : 0.75,
           }}

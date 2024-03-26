@@ -7,9 +7,28 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 export default async function handler(req, res) {
+
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // 提取JWT
+
+  let username;
+
+  try {
+    // 使用JWT获取用户信息
+    const userResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    username = userResponse.data.username;
+  } catch (error) {
+    console.error('JWT verification or user fetching error:', error);
+    return res.status(500).json({ message: 'Error verifying token or fetching user' });
+  }
+
   console.log('收到的请求体:', req.body);
 
-  const { username, fingerprint } = req.body;
+  const { fingerprint } = req.body;
   console.log(`收到的用户名(token): ${username}, 浏览器指纹: ${fingerprint}`);
 
   let ip = req.headers['x-forwarded-for']?.split(',').shift() || req.connection.remoteAddress;
@@ -46,12 +65,14 @@ export default async function handler(req, res) {
     });
 
     if (response.data.data.length > 0) {
-      // 检查是否存在与当前用户名、省份和国家都匹配的记录
+      // 检查是否存在与当前用户名、省份和国家都匹配的记录，或者与用户名和浏览器指纹都匹配的记录
       const isMatch = response.data.data.some(record =>
-        record.attributes.user === username &&
-        record.attributes.province === ipInfo.province &&
-        record.attributes.country === ipInfo.country
+        (record.attributes.user === username && record.attributes.province === ipInfo.province
+          && record.attributes.country === ipInfo.country) ||
+        (record.attributes.user === username && record.attributes.fingerprint === fingerprint)
       );
+
+
 
       if (isMatch) {
         console.log('匹配成功，不需要新建记录');

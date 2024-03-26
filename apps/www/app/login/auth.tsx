@@ -235,29 +235,6 @@ export const verifyDynamicCode = async (token: string, password: string) => {
     return false;
   }
 
-  const fp = await load();
-  const result = await fp.get();
-  const fingerprint = result.visitorId; // 这是浏览器的唯一指纹
-
-  try {
-    // 发送IP验证请求，携带用户名(token)和浏览器指纹
-    const ipVerificationResponse = await axios.post('/api/verifyIp', {
-      username: token, // 用户名直接使用token
-      fingerprint: fingerprint
-    });
-
-
-    if (ipVerificationResponse.status === 200) {
-      message.success('您的登录信息已通过因素验证，ByteFreeze守护您的账户安全。');
-    } else {
-      message.error('验证未通过，请确保您是在授权的设备上操作。');
-      return false;
-    }
-
-  } catch (error) {
-    message.error('验证未通过，请确保您是在授权的设备上操作。');
-    return false;
-  }
 
 
   try {
@@ -267,12 +244,41 @@ export const verifyDynamicCode = async (token: string, password: string) => {
       password,
     });
 
+    const jwt = authRes.data.jwt;
+
     // 检查响应状态是否为200
     if (authRes.status === 200) {
       console.log(`[verifyDynamicCode] Login successful for token ${token}.`);
-      const jwt = authRes.data.jwt;
-      Cookies.set('jwt', jwt);
-      return true;
+      const fp = await load();
+      const result = await fp.get();
+      const fingerprint = result.visitorId; // 这是浏览器的唯一指纹
+
+      try {
+        // 发送IP验证请求，携带用户名(token)和浏览器指纹
+        const ipVerificationResponse = await axios.post('/api/verifyIp', {
+          username: token, // 用户名直接使用token
+          fingerprint: fingerprint
+        }, {
+          headers: {
+            'Authorization': `Bearer ${jwt}` // 将JWT包含在请求头中
+          }
+        });
+
+
+        if (ipVerificationResponse.status === 200) {
+          message.success('您的登录信息已通过因素验证，ByteFreeze守护您的账户安全。');
+          Cookies.set('jwt', jwt);
+          return true;
+        } else {
+          message.error('验证未通过，请确保您是在授权的设备上操作。');
+          return false;
+        }
+
+      } catch (error) {
+        message.error('验证未通过，请确保您是在授权的设备上操作。');
+        return false;
+      }
+
     }
   } catch (error) {
     const axiosError = error as { response?: { data?: { error?: { message?: string } } } };

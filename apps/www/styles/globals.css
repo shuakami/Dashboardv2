@@ -3,7 +3,6 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
-/* 设置全局HTML和body样式 */
 
 
 /* 针对Next.js的根容器样式 */
@@ -197,21 +196,21 @@ html::-webkit-scrollbar {
 
 /* 暗黑模式滚动条样式 */
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #4b5563; /* 暗灰色，适合暗黑主题 */
+  background-color: rgba(75, 85, 99, 0); /* 暗灰色，适合暗黑主题 */
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #374151; /* 更深的灰色 */
+  background: rgba(55, 65, 81, 0); /* 更深的灰色 */
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent; /* 默认主题 */
+  scrollbar-color: rgba(209, 213, 219, 0) transparent; /* 默认主题 */
 }
 
 .dark * {
-  scrollbar-color: #4b5563 transparent; /* 暗黑模式 */
+  scrollbar-color: rgba(75, 85, 99, 0) transparent; /* 暗黑模式 */
 }
 
 .fadeOut {
@@ -373,18 +372,18 @@ html::-webkit-scrollbar {
 /* 去滚轮条 */
 /* 针对Webkit浏览器的滚动条样式 */
 ::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 
 /* 对于支持的浏览器，隐藏滚动条但允许滚动 */
 html {
-  -ms-overflow-style: none; /* IE和Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none !important; /* IE和Edge */
+  scrollbar-width: none !important; /* Firefox */
 }
 
 body {
-  -ms-overflow-style: none; /* IE和Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none!important; /* IE和Edge */
+  scrollbar-width: none!important; /* Firefox */
 }
 
 /* 视频背景 */
@@ -506,4 +505,46 @@ button:focus {
 .setting-exit-active {
   opacity: 0;
   transition: opacity 150ms;
+}
+
+/* 禁用所有输入框元素获取焦点时的边框和阴影 */
+input:focus,
+button:focus
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.flex input:focus,
+.flex textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 如果存在自定义的focus-visible样式，同时也要覆盖它们 */
+*[aria-invalid="false"]:focus-visible,
+*[aria-invalid="true"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* 禁用按钮元素聚焦时的边框和阴影 */
+button:focus,
+[role="combobox"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.h-9.w-full[role="combobox"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* 隐藏滚动条轨道颜色，确保在滚动时完全不可见 */
+::-webkit-scrollbar-thumb {
+  background: transparent;
 }

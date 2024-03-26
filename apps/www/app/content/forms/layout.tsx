@@ -109,7 +109,7 @@ export default function SettingsLayout() {
               onSelect={handlePageSelection} // 更新 onSelect 回调以使用 handlePageSelection
             />
           </aside>
-          <div className="full  mx-auto flex h-screen w-full">
+          <div className="full flex h-screen max-h-full ">
             <SwitchTransition>
               <CSSTransition
                 key={selectedPage} // 使用选中的页面作为key，确保每次切换都触发动画

@@ -6,7 +6,6 @@
 
 import "@/styles/globals.css"
 import { Metadata, Viewport } from "next"
-
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
@@ -18,6 +17,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Toaster as DefaultToaster } from "@/registry/default/ui/toaster"
 import { Toaster as NewYorkSonner } from "@/registry/new-york/ui/sonner"
 import { Toaster as NewYorkToaster } from "@/registry/new-york/ui/toaster"
+import { SettingsProvider } from './SettingsContext';
 
 
 interface RootLayoutProps {
@@ -41,9 +41,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         enableSystem
         disableTransitionOnChange
       >
+        <SettingsProvider>
         <main className="w-full flex-1 items-center justify-center">
             {children}
         </main>
+        </SettingsProvider>
         <TailwindIndicator />
         <ThemeSwitcher />
         <NewYorkToaster />
