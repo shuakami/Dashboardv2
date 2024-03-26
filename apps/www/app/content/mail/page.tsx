@@ -10,12 +10,6 @@
  */
 
 
-/*
- * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
- * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
- */
-
-
 // @ts-ignore
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -111,7 +105,6 @@ export default function MailPage() {
   }, [updateFlag]);
 
   const fetchUserSettings = async () => {
-    if (typeof window !== "undefined") {
     const jwt = Cookies.get('jwt');
     if (jwt) {
       try {
@@ -123,7 +116,6 @@ export default function MailPage() {
       } catch (error) {
         console.error('Failed to fetch user settings:', error);
       }
-    }
     }
   };
 
@@ -253,6 +245,7 @@ export default function MailPage() {
           <Mail
             accounts={accounts}
             mails={mails}
+            defaultLayout={undefined}
             defaultCollapsed={true}
             navCollapsedSize={4}
           />
