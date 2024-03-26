@@ -45,28 +45,6 @@ export default function MailPage() {
 
 
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
-
-  const changeTheme = (newTheme: string) => {
-    setTheme(newTheme);
-  };
-
-
-  const [userSettings, setUserSettings] = useState({
-    theme: '',
-    font: '',
-    backgroundtransparency: '',
-    background: '',
-  });
-
-
-
 
 
 
@@ -109,7 +87,6 @@ export default function MailPage() {
         <div
           className={`absolute left-0 top-0 z-0 min-h-full min-w-full ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
           style={{
-            opacity: userSettings.backgroundtransparency ? parseInt(userSettings.backgroundtransparency) / 100 : 0.75,
           }}
         ></div>
 
