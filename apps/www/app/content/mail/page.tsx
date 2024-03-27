@@ -2,14 +2,9 @@
  * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
-
 "use client"
-/*
- * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
- * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
- */
-
-
+import { cookies } from "next/headers"
+import Image from "next/image"
 // @ts-ignore
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -20,15 +15,16 @@ import React, {useEffect, useState} from "react";
 import Loading from "@/app/content/mail/loading";
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 export default function MailPage() {
+  const layoutCookie = Cookies.get("react-resizable-panels:layout");
+  const collapsedCookie = Cookies.get("react-resizable-panels:collapsed");
+  const [theme, setTheme] = useState('light');
+  const defaultLayout = layoutCookie ? JSON.parse(layoutCookie) : undefined;
+  const defaultCollapsed = collapsedCookie ? JSON.parse(collapsedCookie) : undefined;
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false); // 用于追踪视频是否可见
+  const [data, setData] = useState(null);
+  const [updateFlag, setUpdateFlag] = useState(false);
 
-  const isClient = typeof window !== "undefined";
-
-  const [defaultLayout, setDefaultLayout] = useState(isClient ? undefined : null);
-  const [defaultCollapsed, setDefaultCollapsed] = useState(isClient ? undefined : null);
-  const [theme, setTheme] = useState(isClient ? 'light' : null);
-  const [videoLoaded, setVideoLoaded] = useState(isClient ? false : null);
-  const [videoVisible, setVideoVisible] = useState(isClient ? false : null);
-  const [updateFlag, setUpdateFlag] = useState(isClient ? false : null);
 
   useEffect(() => {
     const cookieUserSettings = Cookies.get('cookie-usersettings');
@@ -203,33 +199,33 @@ export default function MailPage() {
     <>
       <div className="relative flex h-full flex-col overflow-hidden">
         <CSSTransition
-          in={videoVisible || false}// 根据视频是否可见来触发动画
+          in={videoVisible} // 根据视频是否可见来触发动画
           timeout={270}
           classNames="fade"
           appear // 使用 appear prop 来确保动画在初次渲染时触发
         >
           <div>
-        {/* 白色主题视频 */}
-        {!videoLoaded && <div
-          className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none bg-white dark:bg-black"></div>}
+            {/* 白色主题视频 */}
+            {!videoLoaded && <div
+              className="absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none bg-white dark:bg-black"></div>}
 
-        <video autoPlay loop muted
-               className={`absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden ${videoLoaded ? '' : 'hidden'}`}
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}
-               onLoadedMetadata={handleVideoLoad}
-               onError={handleVideoError}>
-          <source src={lightVideo} type="video/mp4"/>
-          Your browser does not support the video tag.
-        </video>
-        {/* 黑色主题视频 */}
-        <video autoPlay loop muted
-               className={`absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block ${videoLoaded ? '' : 'hidden'}`}
-               style={{filter: 'blur(70px)', objectFit: 'cover'}}
-               onLoadedMetadata={handleVideoLoad}
-               onError={handleVideoError}>
-          <source src={darkVideo} type="video/mp4"/>
-          Your browser does not support the video tag.
-        </video>
+            <video autoPlay loop muted
+                   className={`absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden ${videoLoaded ? '' : 'hidden'}`}
+                   style={{filter: 'blur(70px)', objectFit: 'cover'}}
+                   onLoadedMetadata={handleVideoLoad}
+                   onError={handleVideoError}>
+              <source src={lightVideo} type="video/mp4"/>
+              Your browser does not support the video tag.
+            </video>
+            {/* 黑色主题视频 */}
+            <video autoPlay loop muted
+                   className={`absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block ${videoLoaded ? '' : 'hidden'}`}
+                   style={{filter: 'blur(70px)', objectFit: 'cover'}}
+                   onLoadedMetadata={handleVideoLoad}
+                   onError={handleVideoError}>
+              <source src={darkVideo} type="video/mp4"/>
+              Your browser does not support the video tag.
+            </video>
 
           </div>
         </CSSTransition>
@@ -246,8 +242,8 @@ export default function MailPage() {
           <Mail
             accounts={accounts}
             mails={mails}
-            defaultLayout={undefined}
-            defaultCollapsed={true}
+            defaultLayout={defaultLayout}
+            defaultCollapsed={defaultCollapsed}
             navCollapsedSize={4}
           />
         </div>
