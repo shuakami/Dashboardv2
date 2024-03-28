@@ -71,8 +71,7 @@ export function Mail({
                        navCollapsedSize,
                      }: MailProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
   // 正确地解构useMail钩子返回的对象
   const { config, setConfig, mails } = useMail();
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -81,16 +80,12 @@ export function Mail({
   const [selectedLink, setSelectedLink] = useState('');
 
 
-  useEffect(() => {
-    // 因为 useEffect 只在客户端执行，所以这里是安全的
-    const savedShowDashboard = localStorage.getItem('showDashboard');
-    const savedShowSettings = localStorage.getItem('showSettings');
-
-    // 根据 localStorage 的值更新状态
-    setShowDashboard(savedShowDashboard !== null ? savedShowDashboard === 'true' : false);
-    setShowSettings(savedShowSettings !== null ? savedShowSettings === 'true' : false);
-  }, []);
-
+  const [showDashboard, setShowDashboard] = useState(() => {
+    return localStorage.getItem('showDashboard') === 'true';
+  });
+  const [showSettings, setShowSettings] = useState(() => {
+    return localStorage.getItem('showSettings') === 'true';
+  });
 
 
   // 这里计算未读邮件的数量
@@ -114,13 +109,13 @@ export function Mail({
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('showSettings', showSettings.toString());
-  }, [showSettings]);
-
-  React.useEffect(() => {
-    // 监听showDashboard状态的变化，并将其保存到localStorage
     localStorage.setItem('showDashboard', showDashboard.toString());
   }, [showDashboard]);
+
+  // 当 showSettings 改变时，更新 localStorage
+  useEffect(() => {
+    localStorage.setItem('showSettings', showSettings.toString());
+  }, [showSettings]);
 
 
 

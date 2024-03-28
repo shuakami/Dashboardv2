@@ -270,12 +270,12 @@ export const verifyDynamicCode = async (token: string, password: string) => {
           Cookies.set('jwt', jwt);
           return true;
         } else {
-          message.error('验证未通过，请确保您是在授权的设备上操作。');
+          message.error('验证未通过，请确保你是在授权的设备上操作。');
           return false;
         }
 
       } catch (error) {
-        message.error('验证未通过，请确保您是在授权的设备上操作。');
+        message.error('验证未通过，请确保你是在授权的设备上操作。');
         return false;
       }
 

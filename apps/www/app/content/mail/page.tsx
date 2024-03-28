@@ -3,15 +3,15 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 "use client"
-import { cookies } from "next/headers"
-import Image from "next/image"
+import Plyr from 'plyr';
+import 'plyr/dist/plyr.css';
 // @ts-ignore
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { Mail } from "@/app/content/mail/components/mail"
 // @ts-ignore
 import { accounts, mails } from "@/app/content/mail/data"
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Loading from "@/app/content/mail/loading";
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 export default function MailPage() {
@@ -24,6 +24,9 @@ export default function MailPage() {
   const [videoVisible, setVideoVisible] = useState(false); // 用于追踪视频是否可见
   const [data, setData] = useState(null);
   const [updateFlag, setUpdateFlag] = useState(false);
+  const videoRef = useRef(null); // 创建引用以便于 Plyr 访问
+
+
 
 
   useEffect(() => {
@@ -57,16 +60,37 @@ export default function MailPage() {
   }, []);
 
 
+  useEffect(() => {
+    const options = {
+      autoplay: true,
+      loop: { active: true },
+      muted: true,
+      hideControls: true,
+    };
 
-// 视频加载成功
+    // @ts-ignore
+    const player = new Plyr(videoRef.current, options);
+
+    // 监听视频加载成功事件
+    player.on('canplay', handleVideoLoad);
+
+    // 监听视频加载失败事件
+    player.on('error', handleVideoError);
+
+    return () => player.destroy(); // 清理函数
+  }, [theme]); // 依赖于主题，因为视频源可能会根据主题变化
+
+  // 视频加载成功
   const handleVideoLoad = () => {
     setVideoLoaded(true);
-    setVideoVisible(true); // 视频加载后设置视频为可见
+    setVideoVisible(true);
   };
-// 视频加载失败
+
+  // 视频加载失败
   const handleVideoError = () => {
     setVideoLoaded(false);
   };
+
 
 
 
@@ -211,7 +235,7 @@ export default function MailPage() {
 
             <video autoPlay loop muted
                    className={`absolute left-0 top-0 z-[-1] min-h-full w-auto min-w-full max-w-none dark:hidden ${videoLoaded ? '' : 'hidden'}`}
-                   style={{filter: 'blur(70px)', objectFit: 'cover'}}
+                   style={{filter: 'blur(170px)', objectFit: 'cover'}}
                    onLoadedMetadata={handleVideoLoad}
                    onError={handleVideoError}>
               <source src={lightVideo} type="video/mp4"/>
@@ -220,7 +244,7 @@ export default function MailPage() {
             {/* 黑色主题视频 */}
             <video autoPlay loop muted
                    className={`absolute left-0 top-0 z-[-1] hidden min-h-full w-auto min-w-full max-w-none dark:block ${videoLoaded ? '' : 'hidden'}`}
-                   style={{filter: 'blur(70px)', objectFit: 'cover'}}
+                   style={{filter: 'blur(170px)', objectFit: 'cover'}}
                    onLoadedMetadata={handleVideoLoad}
                    onError={handleVideoError}>
               <source src={darkVideo} type="video/mp4"/>
@@ -232,7 +256,7 @@ export default function MailPage() {
 
         {/* 覆盖层 */}
         <div
-          className={`absolute left-0 top-0 z-0 min-h-full min-w-full ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
+          className={`absolute left-0 top-0 z-0 min-h-full min-w-full  bg-white/75 dark:bg-black/75`}
           style={{
             opacity: userSettings.backgroundtransparency ? parseInt(userSettings.backgroundtransparency) / 100 : 0.75,
           }}

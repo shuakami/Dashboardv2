@@ -4,12 +4,12 @@
  */
 
 import { Separator } from "@/registry/new-york/ui/separator"
-import { NotificationsForm } from "@/app/content/forms/notifications/notifications-form"
+import {SecurityForm} from "@/app/content/forms/security/securityForm"
 
-export default function SettingsNotificationsPage() {
+export default function NotificationsPage() {
   return (
     <div className="space-y-6">
-      <NotificationsForm />
+      <SecurityForm />
     </div>
   )
 }

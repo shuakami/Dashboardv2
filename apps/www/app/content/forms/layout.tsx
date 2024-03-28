@@ -7,7 +7,7 @@
 import ProfilePage from './page';
 import AccountPage from '@/app/content/forms/account/page';
 import AppearancePage from '@/app/content/forms/appearance/page';
-import NotificationsPage from '@/app/content/forms/notifications/page';
+import NotificationsPage from '@/app/content/forms/security/page';
 import DisplayPage from '@/app/content/forms/display/page';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import React, {useEffect, useState} from 'react';
@@ -37,9 +37,9 @@ export default function SettingsLayout() {
       title: "Appearance",
       description: "Customize the look and feel of your account."
     },
-    'Notifications': {
-      title: "Notifications",
-      description: "Adjust your notification settings and preferences."
+    'Security': {
+      title: "Security",
+      description: "Manage your account security settings."
     },
     'Display': {
       title: "Display",
@@ -77,7 +77,7 @@ export default function SettingsLayout() {
         return <AccountPage />;
       case 'Appearance':
         return <AppearancePage />;
-      case 'Notifications':
+      case 'Security':
         return <NotificationsPage />;
       case 'Display':
         return <DisplayPage />;
@@ -103,7 +103,7 @@ export default function SettingsLayout() {
                 { title: "Profile", onClick: () => handlePageSelection('Profile') },
                 { title: "Account", onClick: () => handlePageSelection('Account') },
                 { title: "Appearance", onClick: () => handlePageSelection('Appearance') },
-                { title: "Notifications", onClick: () => handlePageSelection('Notifications') },
+                { title: "Security", onClick: () => handlePageSelection('Notifications') },
                 { title: "Display", onClick: () => handlePageSelection('Display') },
               ]}
               onSelect={handlePageSelection} // 更新 onSelect 回调以使用 handlePageSelection
