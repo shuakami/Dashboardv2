@@ -60,25 +60,7 @@ export default function MailPage() {
   }, []);
 
 
-  useEffect(() => {
-    const options = {
-      autoplay: true,
-      loop: { active: true },
-      muted: true,
-      hideControls: true,
-    };
 
-    // @ts-ignore
-    const player = new Plyr(videoRef.current, options);
-
-    // 监听视频加载成功事件
-    player.on('canplay', handleVideoLoad);
-
-    // 监听视频加载失败事件
-    player.on('error', handleVideoError);
-
-    return () => player.destroy(); // 清理函数
-  }, [theme]); // 依赖于主题，因为视频源可能会根据主题变化
 
   // 视频加载成功
   const handleVideoLoad = () => {

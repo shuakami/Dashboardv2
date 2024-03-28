@@ -141,7 +141,7 @@ export default async function handler(req, res) {
 // 构建用户提示
     const promptUser = `请基于以下信息做出决策：\n
 - 当前尝试信息：${JSON.stringify(ipInfo, null, 2)},浏览器指纹${fingerprint}
-- 最近登录记录：${latestRecords.length > 0 ? JSON.stringify(latestRecords, null, 2) : '无历史记录'}\n
+- 最近登录记录：${latestRecords.length > 0 ? JSON.stringify(latestRecords, null, 2) : '无历史记录，请直接给过，因为这是新用户'}\n
   请根据这些信息，判断此次登录是否安全，并简洁明了地给出判断和原因，格式为：“[允许/不允许登录]|[给用户看的原因]”。`;
 
     const data = {
