@@ -78,14 +78,23 @@ export function Mail({
   use51laAndRecaptcha();
   const { refreshMails } = useMail();
   const [selectedLink, setSelectedLink] = useState('');
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
+  useEffect(() => {
+    const savedShowDashboard = localStorage.getItem('showDashboard');
+    const savedShowSettings = localStorage.getItem('showSettings');
 
-  const [showDashboard, setShowDashboard] = useState(() => {
-    return localStorage.getItem('showDashboard') === 'true';
-  });
-  const [showSettings, setShowSettings] = useState(() => {
-    return localStorage.getItem('showSettings') === 'true';
-  });
+    // 更新showDashboard状态
+    if (savedShowDashboard !== null) {
+      setShowDashboard(savedShowDashboard === 'true');
+    }
+
+    // 更新showSettings状态
+    if (savedShowSettings !== null) {
+      setShowSettings(savedShowSettings === 'true');
+    }
+  }, []);
 
 
   // 这里计算未读邮件的数量
