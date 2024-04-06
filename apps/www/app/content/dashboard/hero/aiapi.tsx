@@ -7,6 +7,8 @@
 "use client"
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+// @ts-ignore
+import Cookies from "js-cookie";
 
 
 
@@ -147,7 +149,7 @@ const decideIfNeedGPTAnalysis = async (initialStatuses: UptimeStatus[], visitsSu
   let needAnalysis = false;
   const analysisReasons: string[] = [];
   let adjustedStatuses = [...initialStatuses];
-  let days = 160; // 初始设置为请求1天的数据
+  let days = 160;
 
   // 检查是否有站点下线且下线持续时间为0
   const downServicesWithZeroDowntime = adjustedStatuses.filter(service => service.status === 'down' && service.dailyDown.some(d => d.duration === 0));
@@ -155,7 +157,7 @@ const decideIfNeedGPTAnalysis = async (initialStatuses: UptimeStatus[], visitsSu
   if (downServicesWithZeroDowntime.length > 0) {
     // 如果有站点下线但持续时间为0，则请求160天的数据
     days = 160;
-    adjustedStatuses = await fetchUptimeStatus(days); // 重新获取60天的数据
+    adjustedStatuses = await fetchUptimeStatus(days); // 重新获取160天的数据
   }
 
   // 构建包含状态详细信息的分析原因字符串
@@ -180,32 +182,70 @@ const decideIfNeedGPTAnalysis = async (initialStatuses: UptimeStatus[], visitsSu
 
       console.log(`站点 ${status.name} 最近一次下线发生在: ${lastDowntimeDate}, 从最后一次下线到现在已经过去了: ${daysSinceLastDowntime} 天`);
 
-      analysisReasons.push(`站点 "${status.name}" 当前状态为下线。平均在线时间：${status.averageUptime}%，最后一次上线日期为 ${lastUptimeDate}，距今已 ${daysSinceLastUptime} 天。最近一次下线发生在 ${lastDowntimeDate}，从最后一次下线到现在已经过去了 ${daysSinceLastDowntime} 天。`);
-      needAnalysis = true;
+      const cookieKey = `${status.name}_downtime_reminder`;
+      const lastReminder = Cookies.get(cookieKey);
+
+      if (!lastReminder || (Date.now() - parseInt(lastReminder)) > 3 * 24 * 60 * 60 * 1000) {
+        analysisReasons.push(`站点 "${status.name}" 当前状态为下线。平均在线时间：${status.averageUptime}%，最后一次上线日期为 ${lastUptimeDate}，距今已 ${daysSinceLastUptime} 天。最近一次下线发生在 ${lastDowntimeDate}，从最后一次下线到现在已经过去了 ${daysSinceLastDowntime} 天。`);
+        needAnalysis = true;
+        Cookies.set(cookieKey, Date.now(), { expires: 3 }); // 设置 cookie 过期时间为 3 天
+      }
+    } else {
+      const cookieKey = `${status.name}_downtime_reminder`;
+      const lastReminder = Cookies.get(cookieKey);
+
+      if (lastReminder) {
+        // 如果有之前匹配的 cookie，表示该站点之前出现过故障
+        // 现在站点恢复正常，需要更新 ailogs 的 solved 字段为 true
+        axios.put('https://xn--7ovw36h.love/api/ailogs', {
+          siteName: status.name,
+          solved: true
+        })
+          .then(response => {
+            console.log(`站点 ${status.name} 恢复正常，已更新 ailogs 的 solved 字段为 true`);
+            Cookies.remove(cookieKey); // 删除对应的 cookie
+          })
+          .catch(error => {
+            console.error(`更新站点 ${status.name} 的 ailogs 状态失败:`, error);
+          });
+      }
     }
   });
 
-
   // 检测访问量是否异常减少
-  if (parseInt(visitsSummary.nb_visits) < 10) { // 日访问量少于10为异常
-    needAnalysis = true;
-    analysisReasons.push('网站访问量异常减少。');
+  const currentHour = new Date().getHours();
+  if (currentHour >= 12 && parseInt(visitsSummary.nb_visits) < 5) { // 日访问量少于5为异常，且只在中午12点后检测
+    const cookieKey = 'low_visits_reminder';
+    const lastReminder = Cookies.get(cookieKey);
+
+    if (!lastReminder || (Date.now() - parseInt(lastReminder)) > 3 * 24 * 60 * 60 * 1000) {
+      needAnalysis = true;
+      analysisReasons.push('网站访问量异常减少。');
+      Cookies.set(cookieKey, Date.now(), { expires: 3 }); // 设置 cookie 过期时间为 3 天
+    }
   }
 
   // 检测实时数据中活动数量是否异常
-  if (liveCounters.actions > 1000) {
-    needAnalysis = true;
-    analysisReasons.push('最近一小时活动数量异常增多。');
+  if (liveCounters.actions > 500) {
+    const cookieKey = 'high_actions_reminder';
+    const lastReminder = Cookies.get(cookieKey);
+
+    if (!lastReminder || (Date.now() - parseInt(lastReminder)) > 3 * 24 * 60 * 60 * 1000) {
+      needAnalysis = true;
+      analysisReasons.push('最近一小时活动数量异常增多。');
+      Cookies.set(cookieKey, Date.now(), { expires: 3 }); // 设置 cookie 过期时间为 3 天
+    }
   }
 
   return { needAnalysis, analysisReasons, days };
 };
 
+
 // GPT-4 API请求函数
 const requestGPTAnalysis = async (analysisReasons: string[], visitsSummary: any, liveCounters: any) => {
   // 构建系统提示和用户提示
-  const promptSystem = `请根据以下数据提供分析：`;
-  const promptUser = `存在异常情况：${analysisReasons.join('; ')}. 网站访问摘要数据显示，日访问量为${visitsSummary.nb_visits}，最近一小时活动数量为${liveCounters.actions}.`;
+  const promptSystem = `你是智能运维面板助手。请根据以下数据，给用户发送消息通知。`;
+  const promptUser = `异常情况：${analysisReasons.join('; ')}. 网站访问摘要数据显示，日访问量为${visitsSummary.nb_visits}，最近一小时活动数量为${liveCounters.actions}.`;
 
   const data = {
     model: 'gpt-3.5-turbo',
@@ -239,9 +279,12 @@ const requestGPTAnalysis = async (analysisReasons: string[], visitsSummary: any,
   }
 };
 
-const DataAnalysisComponent = () => {
+interface DataAnalysisComponentProps {
+  onAnalysisComplete: (data: any) => void;
+}
+
+const DataAnalysisComponent: React.FC<DataAnalysisComponentProps> = ({ onAnalysisComplete }) => {
   useEffect(() => {
-    // Step 1: 请求监控状态数据和Matomo API数据
     const fetchData = async () => {
       try {
         const uptimeStatuses = await fetchUptimeStatus(160);
@@ -250,14 +293,54 @@ const DataAnalysisComponent = () => {
           fetchLiveCounters(160)
         ]);
 
-        // Step 2: 分析数据，判断是否需要请求GPT-4分析
         const { needAnalysis, analysisReasons, days } = await decideIfNeedGPTAnalysis(uptimeStatuses, visitsSummaryData, liveCountersData);
 
         if (needAnalysis) {
-          // Step 3: 请求GPT-4分析并输出响应到控制台
-          // const gptResponse = await requestGPTAnalysis(analysisReasons, visitsSummaryData, liveCountersData);
-          // 开发的时候这里要注释，不然一直花我钱
-          // console.log("GPT-4 Analysis Response:", gptResponse);
+          const gptResponse = await requestGPTAnalysis(analysisReasons, visitsSummaryData, liveCountersData);
+          console.log("GPT-4 Analysis Response:", gptResponse);
+
+          const analysisReasonsString = analysisReasons.join('; ');
+          console.log("Combined analysis reasons string:", analysisReasonsString);
+
+          const regex = /站点 "(.+?)" 当前状态为下线。平均在线时间：(\d+)%，最后一次上线日期为 (N\/A|.+?)，距今已 (N\/A|\d+) 天。最近一次下线发生在 (.+?)，从最后一次下线到现在已经过去了 (\d+) 天。/g;
+
+          const matches = Array.from(analysisReasonsString.matchAll(regex));
+          console.log("Regex matches:", matches);
+
+
+            const match = matches[0];
+
+          // 构建postData对象，当无法匹配时提供默认值
+          const postData = {
+            data: {
+              gptResponse: JSON.stringify(gptResponse || {}),
+              siteName: match ? match[1] : "未知站点",
+              visitsSummary: (visitsSummaryData.nb_visits || 0).toString(), // 转换为字符串
+              liveCounters: (liveCountersData.actions || 0).toString(), // 转换为字符串
+              averageUptime: match ? match[2] : "0",
+              lastUptimeDate: match ? match[3] : "N/A",
+              daysSinceLastUptime: match ? match[4] : "N/A",
+              lastDowntimeDate: match ? match[5] : "N/A",
+              daysSinceLastDowntime: match ? match[6] : "N/A",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              solved: false.toString(), // 布尔值转换为字符串
+            },
+          };
+
+
+          await axios.post('https://xn--7ovw36h.love/api/ailogs', postData, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }).then(response => {
+            console.log("Data posted successfully:", response.data);
+          }).catch(error => {
+            console.error("Error posting data:", error);
+          });
+
+        } else {
+          console.log("No need for GPT-4 analysis.");
         }
       } catch (error) {
         console.error("An error occurred during data fetching or analysis:", error);
@@ -265,9 +348,8 @@ const DataAnalysisComponent = () => {
     };
 
     fetchData();
-  }, []); // 这个effect没有依赖，所以它只会在组件加载时运行一次
+  }, []);
 
-  // 此组件不渲染任何UI，只用于执行数据请求和分析
   return null;
 };
 

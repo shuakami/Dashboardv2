@@ -17,7 +17,7 @@ export const sendToAPI = async (id: any, description: any) => {
       messages: [
         {
           role: 'system',
-          content: '你的名字是KIMI AI,你可以做很多事情。回答格式比较严格,请严格按照格式进行输出，不要说其他的。如果用户要求归档x天前的邮件,请输出archive[天数],如archive[7]，如果用户想取消x天前的邮件,请输出rearchive[天数]。如果用户要求发送邮件,请输出sendmail[邮件地址][内容]。如果用户要求快速整理x天内的邮件,请输出quick[天数],如quick[7]。'
+          content: '你的名字是KAMI AI,你可以做很多事情。回答格式比较严格,请严格按照格式进行输出，不要说其他的。如果用户要求归档x天前的邮件,请输出archive[天数],如archive[7]，如果用户想取消x天前的邮件,请输出rearchive[天数]。如果用户要求发送邮件,请输出sendmail[邮件地址][内容]。如果用户要求快速整理x天内的邮件,请输出quick[天数],如quick[7]。'
         },
         {
           role: 'user',

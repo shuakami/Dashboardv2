@@ -14,6 +14,19 @@ import { accounts, mails } from "@/app/content/mail/data"
 import React, {useEffect, useRef, useState} from "react";
 import Loading from "@/app/content/mail/loading";
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/registry/new-york/ui/alert-dialog';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import { toast } from '@/registry/new-york/ui/use-toast';
+
+
 export default function MailPage() {
   const layoutCookie = Cookies.get("react-resizable-panels:layout");
   const collapsedCookie = Cookies.get("react-resizable-panels:collapsed");
@@ -25,6 +38,117 @@ export default function MailPage() {
   const [data, setData] = useState(null);
   const [updateFlag, setUpdateFlag] = useState(false);
   const videoRef = useRef(null); // 创建引用以便于 Plyr 访问
+
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [privacyContent, setPrivacyContent] = useState('');
+  const [termsContent, setTermsContent] = useState('');
+  const [userId, setUserId] = useState('');
+  const [privacyversion, setPrivacyversion] = useState('');
+  const [termsversion, setTermsversion] = useState('');
+
+
+  useEffect(() => {
+    if (Cookies.get('agreedToPolicies')) {
+      console.log('No JWT found or policies already agreed to, skipping policy check.');
+      return; // 如果没有 JWT 或者用户已同意政策，就不执行后续操作
+    }
+    const jwt = Cookies.get('jwt'); // jwt存储在cookie中
+    if (!jwt) {
+      console.log('No JWT found, skipping policy check.');
+      return; // 如果没有 JWT，就不执行后续操作
+    }
+
+
+
+    const fetchUserDataAndPolicies = async () => {
+      try {
+        // 获取用户信息
+        const userInfoResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+          headers: { Authorization: `Bearer ${jwt}` },
+        });
+        const { id: userId, AgreedPrivacy, AgreedTerms } = userInfoResponse.data;
+
+        // 更新状态以保存userId
+        setUserId(userId);
+
+
+        // 获取最新的政策版本信息
+        const resContentsResponse = await axios.get('https://xn--7ovw36h.love/api/rescontents', {
+          headers: { Authorization: `Bearer ${jwt}` },
+        });
+        const [resContent] = resContentsResponse.data.data;
+        const { privacyversion: newPrivacyVersion, termsversion: newTermsVersion, termscontent, privacycontent } = resContent.attributes;
+
+        // 更新状态变量
+        setPrivacyversion(newPrivacyVersion);
+        setTermsversion(newTermsVersion);
+
+
+        // 检查用户是否已同意最新版本的政策
+        if (AgreedPrivacy !== newPrivacyVersion) {
+          setPrivacyContent(privacycontent);
+          setIsPrivacyModalOpen(true);
+        }
+        if (AgreedTerms !== newTermsVersion) {
+          setTermsContent(termscontent);
+          setIsTermsModalOpen(true);
+        }
+      } catch (error) {
+        console.error('Error fetching user data and policies', error);
+      }
+    };
+
+    fetchUserDataAndPolicies();
+  }, []);
+
+
+  const handleCancel = () => {
+    window.location.href = '/login'; // 强制跳转到登录页面
+  };
+
+  const handlePrivacyAgreement = async () => {
+    const jwt = Cookies.get('jwt');
+    try {
+      await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, {
+
+        AgreedPrivacy: privacyversion
+
+      }, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      setIsPrivacyModalOpen(false);
+      Cookies.set('agreedToPrivacy', 'true', { expires: 7 }); // 为隐私政策设置cookie，有效期7天
+      toast({ title: 'Privacy policy updated successfully.' });
+    } catch (error) {
+      console.error('Failed to update privacy agreement', error);
+    }
+  };
+
+  const handleTermsAgreement = async () => {
+    const jwt = Cookies.get('jwt');
+    try {
+      await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, {
+        AgreedTerms: termsversion
+      }, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      setIsTermsModalOpen(false);
+      Cookies.set('agreedToTerms', 'true', { expires: 7 }); // 为服务条款设置cookie，有效期7天
+      toast({ title: 'Terms of service updated successfully.' });
+
+      // 检查两个协议都已同意
+      if(Cookies.get('agreedToPrivacy')) {
+        // 如果隐私政策也已同意，则设置总同意cookie
+        Cookies.set('agreedToPolicies', 'true', { expires: 7 });
+      }
+    } catch (error) {
+      console.error('Failed to update terms agreement', error);
+    }
+  };
+
+
+
 
 
 
@@ -58,9 +182,6 @@ export default function MailPage() {
       fetchUserSettings();
     }
   }, []);
-
-
-
 
   // 视频加载成功
   const handleVideoLoad = () => {
@@ -254,6 +375,41 @@ export default function MailPage() {
           />
         </div>
       </div>
+      <AlertDialog open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen}>
+
+        <AlertDialogContent>
+          <AlertDialogTitle>服务条款 Res_{termsversion}</AlertDialogTitle>
+          <AlertDialogDescription>
+            <div className="mx-auto max-h-40 max-w-2xl overflow-auto ">
+              <ReactMarkdown className="prose max-w-none text-sm" rehypePlugins={[rehypeRaw]}>
+                {termsContent}
+              </ReactMarkdown>
+            </div>
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={handleTermsAgreement}>同意</AlertDialogAction>
+        </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isPrivacyModalOpen} onOpenChange={setIsPrivacyModalOpen}>
+
+        <AlertDialogContent>
+          <AlertDialogTitle>隐私政策 Res_{privacyversion}</AlertDialogTitle>
+          <AlertDialogDescription>
+            <div className="mx-auto max-h-40 max-w-2xl overflow-auto ">
+              <ReactMarkdown className="prose max-w-none text-sm" rehypePlugins={[rehypeRaw]}>
+                {privacyContent}
+              </ReactMarkdown>
+            </div>
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={handlePrivacyAgreement}>同意</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

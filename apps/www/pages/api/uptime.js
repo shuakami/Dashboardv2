@@ -60,7 +60,6 @@ async function getSiteData(apikey, days) {
 }
 
 function dataProcessing(data, dates) {
-  // 假设每个监控项都有 custom_uptime_ranges 和 logs 属性
   return data.map(monitor => {
     const ranges = monitor.custom_uptime_ranges.split("-").map(range => parseFloat(range));
     const averageUptime = ranges.pop(); // 假设最后一个元素是总体平均值

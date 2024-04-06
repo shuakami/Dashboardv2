@@ -11,11 +11,19 @@ import { Textarea } from '@/registry/new-york/ui/textarea';
 import {Label} from "@/registry/new-york/ui/label";
 import {Button} from "@/registry/new-york/ui/button";
 import {ReloadIcon} from "@radix-ui/react-icons";
+import { ChevronDownIcon } from '@radix-ui/react-icons';
+
+
 
 const KamiUI = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [inputValue, setInputValue] = useState(''); // 新增状态存储输入框的值
   const [notificationTrigger, setNotificationTrigger] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   const handleNotificationClick = async (id: string, description: string) => {
     const result = await sendToAPI(id, description);
@@ -86,31 +94,39 @@ const KamiUI = () => {
 
 
   return (
-    <div className="mx-auto mt-1 flex h-full max-w-xl flex-col border-r border-solid p-1" style={{ minHeight: '100vh' }}>
+    <div className="1xl:hidden mx-auto hidden border-r border-solid p-1 sm:hidden lg:hidden xl:flex xl:h-full xl:max-w-xl xl:flex-col" style={{ minHeight: '100vh' }}>
       <div className="flex flex-1 flex-col overflow-auto">
-        <div className="flex items-center px-4 py-2">
-          <h1 className="text-xl font-bold" style={{ marginTop: '-4px' }}>&nbsp;KAMI {'>'}</h1>
+        <div className="flex items-center justify-between px-4 py-2">
+          <h1 className="text-xl font-bold" style={{marginTop: '-4px'}}>&nbsp;KAMI {'>'}</h1>
+          <button
+            onClick={toggleExpand}
+            aria-label="Collapse"
+          >
+            <ChevronDownIcon/>
+          </button>
         </div>
-        <div className="mt-1 flex-1 overflow-auto border-t p-5" style={{ marginTop: '4.4px' }}>
+        {isExpanded && (
+        <div className="mt-1 flex-1 overflow-auto border-t p-5" style={{marginTop: '4.4px'}}>
           <motion.h2
             animate={welcomeAnimation()}
-            transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}
+            transition={{duration: 4, repeat: Infinity, repeatType: 'reverse'}}
             className="mb-2 text-4xl font-bold"
           >
             欢迎。
           </motion.h2>
           <motion.h2
             animate={timeOfDayAnimation()}
-            transition={{ duration: 4.5, repeat: Infinity, repeatType: 'reverse' }}
+            transition={{duration: 4.5, repeat: Infinity, repeatType: 'reverse'}}
             className="mb-4 text-4xl font-bold "
           >
             {timeOfDay}
           </motion.h2>
-          <KamiHero onNotificationClick={handleNotificationClick} trigger={notificationTrigger} className={undefined} />
+          <KamiHero onNotificationClick={handleNotificationClick} trigger={notificationTrigger} className={undefined}/>
         </div>
+        )}
       </div>
     </div>
   );
 };
 
-  export default KamiUI;
+export default KamiUI;

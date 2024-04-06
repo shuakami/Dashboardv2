@@ -15,13 +15,26 @@ interface UptimeStatus {
 }
 
 
-export function UptimeStatusCards() {
+
+// @ts-ignore
+export function UptimeStatusCards({ onEntryClick }) {
   const [statuses, setStatuses] = useState<UptimeStatus[]>([
     { id: 0, status: 'active' },
     { id: 1, status: 'active' },
     { id: 2, status: 'active' },
     { id: 3, status: 'active' },
   ]);
+
+  const handleCardClick = (name: string | undefined) => {
+    // 构造一个具有预期结构的LogEntry对象
+    const entry = {
+      attributes: {
+        siteName: name
+      }
+    };
+    onEntryClick(entry); // 传递这个构造好的对象
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,7 +68,8 @@ export function UptimeStatusCards() {
         {statuses.map(({ name, status }) => (
           <div
             key={name}
-            className="flex flex-col justify-between rounded-lg border px-4 py-3 text-black shadow-sm dark:text-white"
+            className="flex cursor-pointer flex-col justify-between rounded-lg border px-4 py-3 text-black shadow-sm dark:text-white"
+            onClick={() => handleCardClick(name)} // 点击卡片时调用
           >
             <div className="flex items-start justify-between">
               <span className="text-sm font-medium">{name}</span>
