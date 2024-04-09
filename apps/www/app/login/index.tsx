@@ -8,11 +8,21 @@ import Link from "next/link";
 import { Label } from "@/registry/new-york/ui/label";
 import { Input } from "@/registry/new-york/ui/input";
 import { Button } from "@/registry/new-york/ui/button";
-
+import axios from 'axios';
 import { CloseIcon, ArrowLeftIcon } from "@nextui-org/shared-icons";
-import { JSX, SVGProps } from "react";
+import {JSX, SVGProps, useRef} from "react";
 import React, { useState, useEffect } from 'react';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/registry/new-york/ui/alert-dialog"
 
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
@@ -40,6 +50,9 @@ import { TranslateIcon } from "@heroicons/react/outline";
 import Loading from "@/app/content/mail/loading";
 // @ts-ignore
 import Cookies from "js-cookie";
+import {InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot} from "@/registry/new-york/ui/input-otp";
+import {toast} from "@/registry/new-york/ui/use-toast";
+import { message } from "antd";
 
 interface LoginPageProps {
     fromHome?: boolean;
@@ -69,14 +82,35 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
     const [showLoading, setShowLoading] = useState(false);
     // 回首页
     const [redirectToHome, setRedirectToHome] = useState(false);
-  use51laAndRecaptcha();
+    // 邮箱验证模态框
+    const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+    // 是显示验证说明还是验证码输入UI
+    const [verificationStep, setVerificationStep] = useState('initial');
+    // 验证验证码
+    const [verificationCode, setVerificationCode] = useState('');
+    // JWT
+    const [jwt, setJwt] = useState(null); // 使用null作为初始值
+    // 第二个模态框，控制
+    const [showCodeInputDialog, setShowCodeInputDialog] = useState(false);
+    // 冷却时间
+    const [cooldown, setCooldown] = useState(0);
+    // 在CD
+    const [isResending, setIsResending] = useState(false);
+    // 2输入框聚焦用的
+    const [focusInput, setFocusInput] = useState(false);
+
+
+    // 统计、验证JS
+    use51laAndRecaptcha();
+
+
     // 多语言内容
     const content = {
         zh: {
-            title: "这真的是哥们自己的控制台啊，没有人会不喜欢自己的控制台吧",
-            freeForIndividuals: "是个人就免费",
-            exclusive: "但是需要是我的人",
-            othersNotAllowed: "其他都不允许！",
+            title: "值得拥有的永远来之不易，热爱是所有的理由和答案。",
+            freeForIndividuals: "危险！全部隐身",
+            exclusive: "需要登录令牌",
+            othersNotAllowed: "暂未开通注册",
             loginWithToken: "使用令牌 登录",
             noToken: "继续登录代表您已经同意了我们的政策",
             tokenLabel: "令牌AShaDi",
@@ -156,7 +190,7 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
         }
     }, []);
 
-  useEffect(() => {
+    useEffect(() => {
     setIsTokenValid(token.length > 4);
   }, [token]);
 
@@ -184,13 +218,13 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
     }
   }, []);
 
-     useEffect(() => {
+    useEffect(() => {
     if (redirectToHome) {
       window.location.href = '/'; // 当redirectToHome为true时进行跳转
     }
   }, [redirectToHome]);
 
-  if (showLoading) {
+    if (showLoading) {
     return (
       <div style={{
         display: 'flex',
@@ -220,27 +254,127 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
             const { valid, starkey } = await authenticateToken(token);
             setShowSpinner(false);
             if (valid) {
-                console.log(`令牌验证成功, starkey: ${starkey}`);
+           //   console.log(`令牌验证成功, starkey: ${starkey}`);
                 transitionStep(2); // 转到动态验证码输入步骤
+                setFocusInput(true); // 设置 focusInput 为 true
             }
         } else if (step === 2) {
-            // 进行动态验证码的验证
-            setTimeout(async () => {
+          setFocusInput(true); // 设置 focusInput 为 true
+
+          setTimeout(async () => {
+            message.warning('开始验证，不要着急，大概需要15秒');
             setShowSpinner(true);
-            const isValid = await verifyDynamicCode(token, dynamic);
-            if (isValid) {
-                setIsLoggedIn(true);
-                handleLoginSuccess();
-                setShowSpinner(false);
+            const verificationResult = await verifyDynamicCode(token, dynamic); // 使用 verificationResult 接收结果
+
+            // 验证成功的情况
+            if (verificationResult === true) {
+              setIsLoggedIn(true);
+              handleLoginSuccess();
+              setShowSpinner(false);
+            } else if (verificationResult && typeof verificationResult === 'object' && 'error' in verificationResult) {
+              console.error('验证失败');
+              if ('jwt' in verificationResult) {
+                setJwt(verificationResult.jwt); // 更新状态中的JWT
+              }
+              setShowSpinner(false);
+              if (verificationResult.error === 'Verification required') {
+                setShowVerificationDialog(true); // 显示模态框
+                setVerificationStep('initial');
+              }
             } else {
-                console.error('动态验证码验证失败');
-                setShowSpinner(false);
+              // 处理其他可能的错误情况
+              console.error('发生了未知错误。');
+              setShowSpinner(false);
             }
-            }, 800);
+          }, 800);
         }
     };
 
-    // 登录成功处理函数
+    const sendVerificationCodeToEmail = async () => {
+    // 使用存储在状态或上下文中的JWT
+    if (!jwt) {
+      console.error('JWT not found');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/verifyv3', { jwt });
+      console.log(response.data.message);
+      setShowCodeInputDialog(true);
+      setVerificationStep('inputCode');
+      message.success('验证码发送成功，看你的邮箱。');
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      setShowVerificationDialog(true); // 显示模态框
+      setVerificationStep('initial');
+      message.error('邮箱发送失败，换个网试一下。');
+    }
+  };
+
+
+  const verifyCode = async () => {
+
+    if (!jwt) {
+      console.error('JWT not found');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/verifyCode', {
+        jwt,
+        code: verificationCode,
+      });
+      if (response.data.message === '验证码验证成功') {
+        Cookies.set('jwt', jwt);
+        console.log('验证码验证成功');
+        setIsLoggedIn(true);
+        handleLoginSuccess();
+        setShowCodeInputDialog(false); // 验证成功才关闭对话框
+        message.success('您的验证已通过，ByteFreeze守护您的账户安全。');
+        setVerificationCode('');
+      } else {
+        console.error('验证码验证失败:', response.data.message);
+        // 验证码错误，保持对话框打开并可能提供反馈给用户
+        setShowCodeInputDialog(true);
+        setVerificationStep('inputCode'); // 保持在输入验证码的界面
+        message.error('验证码不对，过期了或者是错了');
+      }
+    } catch (error) {
+      console.error('验证过程中发生错误:', error);
+      setShowCodeInputDialog(true); // 出错时也保持对话框打开
+      setVerificationStep('inputCode');
+      message.error('验证码不对，过期了或者是错了');
+    }
+  };
+
+  const resendVerificationCode = () => {
+    if (cooldown > 0 || isResending) {
+      // 如果正在冷却或正在重新发送，则不执行操作
+      return;
+    }
+
+    setIsResending(true);
+    sendVerificationCodeToEmail(); // 触发重新发送验证码到邮箱的函数
+    setCooldown(30); // 设置30秒冷却时间
+
+    const intervalId = setInterval(() => {
+      setCooldown((prevCooldown) => {
+        if (prevCooldown <= 1) {
+          clearInterval(intervalId); // 清除计时器
+          setIsResending(false); // 重置重发状态
+          return 0;
+        }
+        return prevCooldown - 1;
+      });
+    }, 1000); // 每秒更新一次
+  };
+
+
+
+
+
+
+  // 登录成功处理函数
     const handleLoginSuccess = () => {
         // 设置登录状态 存在localStorage中
       Cookies.set('isLoggedIn', 'true', { expires: 7 });
@@ -291,205 +425,264 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
     };
 
     return (
+
+      <>
+
+        <AlertDialog open={showVerificationDialog} onOpenChange={(isOpen) => setShowVerificationDialog(isOpen)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>额外验证要求</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              出于安全考虑，我们需要进一步验证您的身份。
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowVerificationDialog(false)}>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                console.log('开始额外验证流程');
+                sendVerificationCodeToEmail(); // 调用此函数发送验证码
+                setShowVerificationDialog(false); // 关闭当前模态框
+                setShowCodeInputDialog(true); // 打开验证码输入模态框
+              }}>继续验证</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showCodeInputDialog} onOpenChange={(isOpen) => setShowCodeInputDialog(isOpen)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>验证码验证</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              验证码已发送到您的邮箱，请在下面填写验证码进行验证。
+              {/* 重发验证码选项 */}
+              <div
+                onClick={!isResending && cooldown === 0 ? resendVerificationCode : undefined} // 使用undefined替换null
+                style={{
+                  color: cooldown > 0 || isResending ? 'grey' : '#1895F8',
+                  cursor: cooldown > 0 || isResending ? 'not-allowed' : 'pointer',
+                  marginTop: '8px',
+                }}
+              >
+                {cooldown > 0 ? `重发验证码 (${cooldown}秒)` : '重发验证码'}
+              </div>
+            </AlertDialogDescription>
+
+            <InputOTP maxLength={6} value={verificationCode} onChange={(value) => setVerificationCode(value)}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSeparator />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowCodeInputDialog(false)}>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={verifyCode}>提交验证码</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+
+
+
         <CSSTransition in={showPage} timeout={500} classNames="page" unmountOnExit>
-            <div className="flex h-screen w-full items-center justify-center">
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute left-0 top-0 h-full w-full object-cover"
-                    src="/video/background.mp4"
-                />
-                <div className="z-[1] mx-auto flex w-[980px] items-center justify-between p-8" style={{gap: '48px'}}>
-                    {fromHome && (
-                        <div className="absolute right-0 top-0 p-4">
-                            <button onClick={handleCloseLoginPage} aria-label="Close login page and return to home">
-                                <XIcon className="h-6 w-6 text-white"/>
-                            </button>
-                        </div>
+        <div className="flex h-screen w-full items-center justify-center">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute left-0 top-0 h-full w-full object-cover"
+            src="/video/background.mp4"/>
+          <div className="z-[1] mx-auto flex w-[980px] items-center justify-between p-8" style={{gap: '48px'}}>
+            {fromHome && (
+              <div className="absolute right-0 top-0 p-4">
+                <button onClick={handleCloseLoginPage} aria-label="Close login page and return to home">
+                  <XIcon className="h-6 w-6 text-white"/>
+                </button>
+              </div>
 
-                    )}
-                    <div className="text-container flex flex-col justify-center space-y-6 text-white"
-                         style={{maxWidth: '440px'}}>
-                        <FlagIcon className="h-8 w-8"/>
-                        <h1 className="text-4xl ">{currentContent.title}</h1>
-                        <ul className="space-y-4">
-                            <li className="flex items-center space-x-2">
-                                <CheckIcon className="h-5 w-5"/>
-                                <span>{currentContent.freeForIndividuals}</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                                <CheckIcon className="h-5 w-5"/>
-                                <span>{currentContent.exclusive}</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                                <CloseIcon className="h-5 w-5"/>
-                                <span>{currentContent.othersNotAllowed}</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <Card
-                        className="relative flex w-[400px] flex-col rounded-lg border-none bg-white/75 backdrop-blur-md dark:bg-black/80">
-                        {step > 1 && !isLoggedIn && (
-                            <div className="absolute right-4 top-4">
-                                <button onClick={handlePreviousStep}
-                                        className="flex items-center text-sm font-semibold text-blue-600">
-                                    <ArrowLeftIcon fill="currentColor"/>
-                                    {currentContent.prevStep}
-                                </button>
-                            </div>
-                        )}
-                        {isLoggedIn ? (
-                            <div className="min-h-[140px]"></div> // 防止炸机抖动
-                        ) : (
-                            <>
-                                <CardHeader>
-                                    <CardTitle>{currentContent.loginWithToken}</CardTitle>
-                                    <CardDescription>
-                                        {/* 注意此处应该修bug，具体是registerNewToken-Url不对 */}
-                                        {currentContent.noToken}{" "}
-                                        <Link className="text-blue-600 hover:underline" href="#">
-                                            {/*  {currentContent.registerNewToken} 因为我不喜欢看到报错，所以注释 */}
-                                        </Link>
-                                    </CardDescription>
-                                </CardHeader>
-                            </>
-                        )}
-                        <SwitchTransition>
-                            <CSSTransition
-                                key={step}
-                                addEndListener={(node: { addEventListener: (arg0: string, arg1: any, arg2: boolean) => any; }, done: any) => node.addEventListener("transitionend", done, false)}
-                                classNames="fade"
-                            >
-                                <CardContent
-                                    className={`relative grow ${isLoggedIn ? "card-content-transition" : ""}`}
-                                    style={{minHeight: isLoggedIn ? 'auto' : '145px'}}>
-                                    {showSpinner ? (
-                                        <div className="flex h-full items-center justify-center">
-                                            <Loading/>
-                                        </div>
-                                    ) : isLoggedIn ? (
-                                        // 登录成功显示内容
-                                        <>
-                                            <Spinner size="lg" color="primary" style={{
-                                                width: '352px', height: '0px',
-                                            }}/>
-                                            <div
-                                                className=" h-full dark:text-white">{currentContent.searchingForInfo}</div>
-                                            <p style={{
-                                                fontSize: '21px',
-                                                height: '150px',
-                                                width: '352px',
-                                                fontWeight: 'bold'
-                                            }}>{currentContent.loginSuccess}</p>
-
-                                        </>
-                                    ) : step === 1 ? (
-                                        // 1-令牌输入
-                                        <>
-                                            <Label htmlFor="token">{currentContent.tokenLabel}</Label>
-                                            <Input
-                                                className="input-no-outline"
-                                                id="token"
-                                                placeholder={currentContent.tokenPlaceholder}
-                                                value={token}
-                                                onChange={(e) => setToken(e.target.value)}
-                                                //允许回车下一步
-                                                onKeyDown={(event) => {
-                                                    if (event.key === 'Enter') {
-                                                        handleNextStep().catch((error) => {
-                                                            console.error('handleNextStep encountered an error:', error);
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                            <Button
-                                                className="mt-4 w-full"
-                                                onClick={handleNextStep}
-                                                disabled={!isTokenValid}
-                                                style={{backgroundColor: isTokenValid ? '#009dff' : '#7fceff'}}
-                                            >
-                                                {currentContent.nextStep}
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        // 2-动态验证码输入
-                                        <>
-                                            <Label htmlFor="dynamic">{currentContent.dynamicVerification}</Label>
-                                            <Input
-                                                id="dynamic"
-                                                className="input-no-outline"
-                                                placeholder={currentContent.dynamicVerification}
-                                                type="password"
-                                                value={dynamic}
-                                                onChange={(e) => setDynamic(e.target.value)}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === 'Enter') {
-                                                        handleNextStep().catch((error) => {
-                                                            console.error('handleNextStep encountered an error:', error);
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                            <Button
-                                                className="mt-4 w-full"
-                                                onClick={handleNextStep}
-                                                style={{backgroundColor: dynamic.length > 4 ? '#009dff' : '#7fceff'}}
-                                            >
-                                                {currentContent.login}
-                                            </Button>
-                                        </>
-                                    )}
-                                </CardContent>
-                            </CSSTransition>
-                        </SwitchTransition>
-                    </Card>
-                </div>
-                <div className="absolute bottom-4 left-4 flex flex-col space-y-4">
-                  <DropdownMenu open={open} onOpenChange={setOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <div style={{position: 'relative', zIndex: 999}}>
-                        <TranslateIcon
-                          className="h-5 w-5 text-white opacity-50 transition-opacity duration-200 hover:opacity-60"
-                        />
-                      </div>
-                    </DropdownMenuTrigger>
-                    {/* eslint-disable-next-line tailwindcss/migration-from-tailwind-2 */}
-                    <DropdownMenuContent side="top"  className="ml-4 border-none bg-white/70 p-1 backdrop-blur-md transition duration-200 ease-in-out dark:bg-[#121212]/80 dark:bg-opacity-80">
-                    <DropdownMenu aria-label="Language switcher">
-                      <DropdownMenuGroup >
-                      <DropdownMenuItem key="auto" onClick={() => switchLanguage('auto')}>
-                                自动选择-Languageauto
-                            </DropdownMenuItem>
-                            <DropdownMenuItem key="zh" onClick={() => switchLanguage('zh')} >
-                                中文
-                            </DropdownMenuItem>
-                            <DropdownMenuItem key="en" onClick={() => switchLanguage('en')}>
-                                English
-                            </DropdownMenuItem>
-                            <DropdownMenuItem key="ru" onClick={() => switchLanguage('ru')}>
-                                русский язык
-                            </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                        </DropdownMenu>
-                  </DropdownMenuContent>
-                    </DropdownMenu>
-
-                </div>
-                {/* 原始人&nbsp;哈哈哈哈哈我也没办法的QAQ */}
-                <p className="no-select copyright-text absolute bottom-4 left-4 z-0 text-xs text-white opacity-50">
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; © {new Date().getFullYear()} ByteFreezeLab. All rights
-                    reserved.
-                    {' '}
-                    <Link href="/privacy" target="_blank"
-                       className="text-white hover:text-gray-200 dark:hover:text-gray-400">隐私</Link>
-                    {' '}
-                    <Link href="/policy" target="_blank"
-                       className="text-white hover:text-gray-200 dark:hover:text-gray-400">条款协议</Link>
-                </p>
+            )}
+            <div className="text-container flex flex-col justify-center space-y-6 text-white"
+                 style={{maxWidth: '440px'}}>
+              <FlagIcon className="h-8 w-8"/>
+              <h1 className="text-4xl ">{currentContent.title}</h1>
+              <ul className="space-y-4">
+                <li className="flex items-center space-x-2">
+                  <CheckIcon className="h-5 w-5"/>
+                  <span>{currentContent.freeForIndividuals}</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CheckIcon className="h-5 w-5"/>
+                  <span>{currentContent.exclusive}</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <CloseIcon className="h-5 w-5"/>
+                  <span>{currentContent.othersNotAllowed}</span>
+                </li>
+              </ul>
             </div>
-        </CSSTransition>
+            <Card
+              className="relative flex w-[400px] flex-col rounded-lg border-none bg-white/75 backdrop-blur-md dark:bg-black/80">
+              {step > 1 && !isLoggedIn && (
+                <div className="absolute right-4 top-4">
+                  <button onClick={handlePreviousStep}
+                          className="flex items-center text-sm font-semibold text-blue-600">
+                    <ArrowLeftIcon fill="currentColor"/>
+                    {currentContent.prevStep}
+                  </button>
+                </div>
+              )}
+              {isLoggedIn ? (
+                <div className="min-h-[140px]"></div> // 防止炸机抖动
+              ) : (
+                <>
+                  <CardHeader>
+                    <CardTitle>{currentContent.loginWithToken}</CardTitle>
+                    <CardDescription>
+                      {/* 注意此处应该修bug，具体是registerNewToken-Url不对 */}
+                      {currentContent.noToken}{" "}
+                      <Link className="text-blue-600 hover:underline" href="#">
+                        {/*  {currentContent.registerNewToken} 因为我不喜欢看到报错，所以注释 */}
+                      </Link>
+                    </CardDescription>
+                  </CardHeader>
+                </>
+              )}
+              <SwitchTransition>
+                <CSSTransition
+                  key={step}
+                  addEndListener={(node: {
+                    addEventListener: (arg0: string, arg1: any, arg2: boolean) => any;
+                  }, done: any) => node.addEventListener("transitionend", done, false)}
+                  classNames="fade"
+                >
+                  <CardContent
+                    className={`relative grow ${isLoggedIn ? "card-content-transition" : ""}`}
+                    style={{minHeight: isLoggedIn ? 'auto' : '142px'}}>
+                    {showSpinner ? (
+                      <div className="flex h-full items-center justify-center">
+                        <Loading/>
+                      </div>
+                    ) : isLoggedIn ? (
+                      // 登录成功显示内容
+                      <>
+                        <div
+                          className="h-full dark:text-white"></div>
+                        <p style={{
+                          textAlign: 'center',
+                          fontSize: '21px',
+                          fontWeight: 'bold'
+                        }}></p>
+                      </>
+                    ) : step === 1 ? (
+                      // 1-令牌输入
+                      <>
+                        <Label htmlFor="token">{currentContent.tokenLabel}</Label>
+                        <Input
+                          className="input-no-outline"
+                          id="token"
+                          placeholder={currentContent.tokenPlaceholder}
+                          value={token}
+                          onChange={(e) => setToken(e.target.value)}
+                          //允许回车下一步
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              handleNextStep().catch((error) => {
+                                console.error('handleNextStep encountered an error:', error);
+                              });
+                            }
+                          }}/>
+                        <Button
+                          className="mt-4 w-full"
+                          onClick={handleNextStep}
+                          disabled={!isTokenValid}
+                          style={{backgroundColor: isTokenValid ? '#009dff' : '#7fceff'}}
+                        >
+                          {currentContent.nextStep}
+                        </Button>
+                      </>
+                    ) : (
+                      // 2-动态验证码输入
+                      <>
+                        <Label htmlFor="dynamic">{currentContent.dynamicVerification}</Label>
+                        <Input
+                          autoFocus={focusInput}
+                          id="dynamic"
+                          className="input-no-outline"
+                          placeholder={currentContent.dynamicVerification}
+                          type="password"
+                          value={dynamic}
+                          onChange={(e) => setDynamic(e.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              handleNextStep().catch((error) => {
+                                console.error('handleNextStep encountered an error:', error);
+                              });
+                            }
+                          }}/>
+                        <Button
+                          className="mt-4 w-full"
+                          onClick={handleNextStep}
+                          style={{backgroundColor: dynamic.length > 4 ? '#009dff' : '#7fceff'}}
+                        >
+                          {currentContent.login}
+                        </Button>
+                      </>
+                    )}
+                  </CardContent>
+                </CSSTransition>
+              </SwitchTransition>
+            </Card>
+          </div>
+          <div className="absolute bottom-4 left-4 flex flex-col space-y-4">
+            <DropdownMenu open={open} onOpenChange={setOpen}>
+              <DropdownMenuTrigger asChild>
+                <div style={{position: 'relative', zIndex: 999}}>
+                  <TranslateIcon
+                    className="h-5 w-5 text-white opacity-50 transition-opacity duration-200 hover:opacity-60"/>
+                </div>
+              </DropdownMenuTrigger>
+              {/* eslint-disable-next-line tailwindcss/migration-from-tailwind-2 */}
+              <DropdownMenuContent side="top"
+                                   className="ml-4 border-none bg-white/70 p-1 backdrop-blur-md transition duration-200 ease-in-out dark:bg-[#121212]/80 dark:bg-opacity-80">
+                <DropdownMenu aria-label="Language switcher">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem key="auto" onClick={() => switchLanguage('auto')}>
+                      自动选择-Languageauto
+                    </DropdownMenuItem>
+                    <DropdownMenuItem key="zh" onClick={() => switchLanguage('zh')}>
+                      中文
+                    </DropdownMenuItem>
+                    <DropdownMenuItem key="en" onClick={() => switchLanguage('en')}>
+                      English
+                    </DropdownMenuItem>
+                    <DropdownMenuItem key="ru" onClick={() => switchLanguage('ru')}>
+                      русский язык
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+          </div>
+          {/* 原始人&nbsp;哈哈哈哈哈我也没办法的QAQ */}
+          <p className="no-select copyright-text absolute bottom-4 left-4 z-0 text-xs text-white opacity-50">
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; © {new Date().getFullYear()} ByteFreezeLab. All rights
+            reserved.
+            {' '}
+            <Link href="/docs/privacy" target="_blank"
+                  className="text-white hover:text-gray-200 dark:hover:text-gray-400">隐私政策</Link>
+            {' '}
+            <Link href="/docs/terms" target="_blank"
+                  className="text-white hover:text-gray-200 dark:hover:text-gray-400">用户协议</Link>
+          </p>
+        </div>
+      </CSSTransition></>
     );
 }
 

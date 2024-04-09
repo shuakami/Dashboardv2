@@ -135,6 +135,7 @@ export default async function handler(req, res) {
       }
     };
 
+
     const latestRecords = await getLatestRecords(username); // 获取最新的记录，可能是0, 1, 或2条
 
 

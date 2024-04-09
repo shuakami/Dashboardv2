@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 "use client"
 
 import * as React from "react"
@@ -30,46 +35,16 @@ export function MainNav() {
         >
           Docs
         </Link>
+
+
+
         <Link
-          href="/docs/components"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/docs/components")
-              ? "text-foreground"
-              : "text-foreground/60"
-          )}
-        >
-          Components
-        </Link>
-        <Link
-          href="/themes"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/themes")
-              ? "text-foreground"
-              : "text-foreground/60"
-          )}
-        >
-          Themes
-        </Link>
-        <Link
-          href="/examples"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/content")
-              ? "text-foreground"
-              : "text-foreground/60"
-          )}
-        >
-          Examples
-        </Link>
-        <Link
-          href={siteConfig.links.github}
+          href="/"
           className={cn(
             "hidden text-foreground/60 transition-colors hover:text-foreground/80 lg:block"
           )}
         >
-          GitHub
+          Dashboard
         </Link>
       </nav>
     </div>

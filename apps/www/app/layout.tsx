@@ -32,7 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={cn(
           " font-sans",
-          fontSans.className
+          fontSans
         )}
       >
       <ThemeProvider

@@ -36,7 +36,7 @@ import {
 } from "@/registry/new-york/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/new-york/ui/tabs";
 import Link from "next/link";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {ReloadIcon} from "@radix-ui/react-icons";
 
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
@@ -71,6 +71,29 @@ export function ReportDrawer({ mail, open, onClose }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showPenaltyReason, setShowPenaltyReason] = useState(false);
+  const [tabValue, setTabValue] = useState('violation'); // 默认选中的Tab
+  const drawerContentRef = useRef(null); // 用于引用 DrawerContent 的 DOM 元素
+
+
+  useEffect(() => {
+    if (drawerContentRef.current) {
+      // 用一个小技巧先设置 max-height 为 'none' 来获取实际高度
+      // @ts-ignore
+      drawerContentRef.current.style.maxHeight = 'none';
+      // @ts-ignore
+      const actualHeight = drawerContentRef.current.offsetHeight;
+
+      // 然后立即将 max-height 设置为实际高度来启用动画
+      // @ts-ignore
+      drawerContentRef.current.style.maxHeight = '300px'; // 重置为0来确保动画从头开始
+      setTimeout(() => {
+        // @ts-ignore
+        drawerContentRef.current.style.maxHeight = `${actualHeight}px`;
+      }, 0.4); // 短暂延迟确保 max-height 从 0 开始动画
+    }
+  }, [tabValue]); // 当 tabValue 变化时触发
+
+
 
 
   // 生成基于邮件标题和内容的唯一键
@@ -233,7 +256,7 @@ export function ReportDrawer({ mail, open, onClose }) {
   // @ts-ignore
   return (
     <Drawer open={open} onOpenChange={onClose}>
-      <DrawerContent>
+      <DrawerContent ref={drawerContentRef} className="drawerContent">
         <div className="mx-auto w-full max-w-md p-4">
           {isLoading || isFadingOut ? (
             <div style={{
@@ -288,7 +311,7 @@ export function ReportDrawer({ mail, open, onClose }) {
               </div>
             </>
           ) : (
-            <Tabs defaultValue="violation" className="mx-auto w-full max-w-4xl">
+            <Tabs value={tabValue} onValueChange={setTabValue} className=" w-full max-w-4xl">
               <TabsList className="grid grid-cols-3">
                 <TabsTrigger value="violation">违规信息</TabsTrigger>
                 <TabsTrigger value="penalty">封号详情</TabsTrigger>

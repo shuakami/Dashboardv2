@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 // @ts-nocheck
 "use client"
 
@@ -32,7 +37,7 @@ export function DashboardTableOfContents({ toc }: TocProps) {
 
   return (
     <div className="space-y-2">
-      <p className="font-medium">On This Page</p>
+      <p className="font-medium">目录 ovo</p>
       <Tree tree={toc} activeItem={activeHeading} />
     </div>
   )
@@ -80,7 +85,7 @@ interface TreeProps {
 }
 
 function Tree({ tree, level = 1, activeItem }: TreeProps) {
-  return tree?.items?.length && level < 3 ? (
+  return tree?.items?.length && level < 5 ? (
     <ul className={cn("m-0 list-none", { "pl-4": level !== 1 })}>
       {tree.items.map((item, index) => {
         return (

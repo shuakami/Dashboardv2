@@ -60,6 +60,9 @@ import {addMinutes, addWeeks, startOfDay} from "date-fns";
 import { DeleteSelectMailRead } from "@/app/content/mail/components/mail-list";
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 import {AddSend} from "@/app/content/mail/components/addsend";
+import {PaperClipIcon} from "@heroicons/react/outline";
+import { CardContent } from "@/registry/default/ui/card";
+import {Card, CardFooter, CardHeader, CardTitle} from "@/registry/new-york/ui/card";
 
 setupAxiosInterceptors();
 
@@ -99,6 +102,194 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const textareaRef = React.useRef(null);
   // 新增邮件模态框
   const [isAddSendDialogOpen, setIsAddSendDialogOpen] = useState(false);
+  // 文件上传模态框
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  // 文件上传列表
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  // 文件预览
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  // 预览模态框
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // 上传成功的URL
+  const [uploadedFileURLs, setUploadedFileURLs] = useState([]);
+
+
+  const handleDragOver = (e: { preventDefault: () => void; }) => {
+    e.preventDefault(); // 阻止默认行为
+  };
+
+  const handleDrop = (e: { preventDefault: () => void; dataTransfer: { files: Iterable<unknown> | ArrayLike<unknown>; }; }) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+
+    if (files.length > 15) {
+      // 同样选择截断文件列表或通知用户
+      toast({
+        title: '文件数量超过限制',
+        description: '最多只能选择15个'
+      }
+      );
+      // @ts-ignore
+      setSelectedFiles(files.slice(0, 15)); // 截断到前15个文件
+      files.forEach(file => {
+        uploadFile(file);
+      });
+    } else {
+      // @ts-ignore
+      setSelectedFiles(files);
+      files.forEach(file => {
+        uploadFile(file);
+      });
+    }
+  };
+
+
+
+
+  const handleRemoveFile = (fileToRemove: File) => {
+    // 从选中文件列表中移除文件
+    setSelectedFiles(selectedFiles.filter(file => file !== fileToRemove));
+
+    // 尝试从URLs中移除对应的文件URL
+    const fileNameToRemove = fileToRemove.name;
+    // @ts-ignore
+    setUploadedFileURLs(prevUrls => prevUrls.filter(url => !url.endsWith(fileNameToRemove)));
+
+    // 如果正在预览被移除的文件，则关闭预览
+    setPreviewFile(null);
+  };
+
+
+  function formatFileSize(bytes: any) {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
+  }
+
+
+  const insertLinksIntoText = () => {
+    if (!uploadedFileURLs.length) {
+      toast({
+        title: '错误',
+        description: '没有文件被上传。',
+      });
+      return;
+    }
+
+    // 生成Markdown链接字符串
+    const markdownLinks = uploadedFileURLs
+      .map(url => {
+        // 从URL中提取文件名
+        // @ts-ignore
+        const fileName = url.split('/').pop();
+        // 生成Markdown格式的链接
+        return `![${fileName}](${url})\n`;
+      })
+      .join('');
+
+
+    // 重置文件列表和URLs
+    setSelectedFiles([]);
+    setUploadedFileURLs([]);
+
+    // 关闭上传模态框
+    setIsUploadModalOpen(false);
+
+    // 插入到Textarea的现有内容中
+    const newText = `${text}\n${markdownLinks}`;
+    setText(newText);
+    setIsUploadModalOpen(false)
+    // 自动滚动到Textarea的底部
+    if (textareaRef && textareaRef.current) {
+      // @ts-ignore
+      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+    }
+  };
+
+
+
+  // @ts-ignore
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append('files', file); // 添加文件
+
+    try {
+      const response = await fetch('https://xn--7ovw36h.love/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // 解析响应体以获取文件的URL
+      const data = await response.json();
+      const uploadedUrl = data[0].url; // 响应体结构为 [{ url: "..." }]
+
+      // 更新状态以保存URL
+      // @ts-ignore
+      setUploadedFileURLs(prevUrls => [...prevUrls, `https://xn--7ovw36h.love${uploadedUrl}`]);
+
+      // 上传成功
+      toast({
+        title: '上传成功',
+        description: `${file.name} 已经上传。`,
+      });
+    } catch (error) {
+      // 上传失败
+      toast({
+        title: '上传失败',
+        description: `上传 ${file.name} 时出现错误。`,
+      });
+    }
+  };
+
+
+
+  const handleFileUpload = () => {
+    setIsUploadModalOpen(true); // 显示模态框
+  };
+
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    if (event.target.files === null) return;
+
+    const files = Array.from(event.target.files);
+    if (files.length > 15) {
+      // 选择截断文件列表或通知用户
+      toast({
+        title: '文件数量超过限制',
+        description: '最多只能选择15个'
+      }
+    );
+      setSelectedFiles(files.slice(0, 15)); // 截断到前15个文件
+      files.forEach(file => {
+        uploadFile(file);
+      });
+    } else {
+      setSelectedFiles(files);
+      files.forEach(file => {
+        uploadFile(file);
+      });
+    }
+  };
+
+
+  const handleFileClick = (file: File) => {
+    // @ts-ignore
+    setPreviewFile(file);
+    setIsPreviewOpen(true); // 显示预览对话框
+  };
+
+
+
 
   useEffect(() => {
     // 确保代码运行在客户端
@@ -939,8 +1130,117 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                           <p>下划线</p>
                         </TooltipContent>
                       </Tooltip>
-                    </ToggleGroup>
-                  </TooltipProvider>
+
+
+                  {/* 文件上传按钮 */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem value="upload" aria-label="Upload file"
+                                       disabled={mail && (mail.archive || mail.name === '系统消息-周报')}
+                                       onClick={handleFileUpload}>
+                        <PaperClipIcon className="mt-0.5 h-4 w-4"/>
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>上传文件</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+
+                </ToggleGroup>
+              </TooltipProvider>
+
+                  <AlertDialog open={isUploadModalOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>上传文件</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          请选择文件进行上传。支持的文件类型包括：.jpg, .png, .doc, .pdf等。
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <Card className="max-w-lg border-2 border-dashed border-gray-500/40 p-4 dark:border-gray-500/40">
+                        <CardContent
+                          className="flex flex-col items-center justify-center p-4"
+                          onDoubleClick={() => {
+                            const fileInput = document.getElementById('file-upload');
+                            if (fileInput) fileInput.click();
+                          }}
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                        >
+                          {/* 如果没有选中的文件，则显示上传区域，否则显示文件列表 */}
+                          {selectedFiles.length > 0 ? (
+                            <ul className="max-h-48 max-w-lg overflow-y-auto">
+                              {selectedFiles.map((file, index) => (
+                                <li key={index} className="flex items-center justify-between p-2">
+          <span className="cursor-pointer text-sm" onClick={() => handleFileClick(file)}>
+            {file.name}
+          </span>
+                                  <span className="text-sm">{(file.size / 1024).toFixed(2)} KB</span>
+                                  <button onClick={() => handleRemoveFile(file)} className="ml-4 text-red-500">删除
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg"
+                                 onClick={() => {
+                                   const fileInput = document.getElementById('file-upload');
+                                   if (fileInput) fileInput.click();
+                                 }}>
+                              <PaperClipIcon className="h-8 w-8 text-gray-400"/>
+                              <p className="mt-2 text-sm text-gray-600/70">双击或拖动以上传</p>
+                            </div>
+                          )}
+                          <input type="file" id="file-upload" className="hidden" onChange={handleFileChange} multiple/>
+                        </CardContent>
+
+                      </Card>
+
+
+                      <AlertDialogFooter>
+                        <input type="file" id="file-upload" className="hidden" onChange={handleFileChange} multiple />
+                        <AlertDialogCancel onClick={() => setIsUploadModalOpen(false)}>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={insertLinksIntoText}>插入正文</AlertDialogAction>
+                      </AlertDialogFooter>
+
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+
+                  <AlertDialog open={isPreviewOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <div className="flex items-center">
+                          <AlertDialogTitle>文件预览</AlertDialogTitle>
+                          <div className="ml-2 text-sm text-gray-500">
+                            {previewFile && `${formatFileSize(previewFile.size)}`}
+                          </div>
+                        </div>
+                      </AlertDialogHeader>
+                      {previewFile && (
+                        <div className="relative flex flex-col items-center justify-center">
+                          <img
+                            src={URL.createObjectURL(previewFile)}
+                            alt="Preview"
+                            className="max-h-72 max-w-full rounded-lg"
+                          />
+                          <div className="absolute bottom-2 right-2 text-xs text-default/30">
+                            图片内容由您全权负责，我们不承担任何法律责任。
+                          </div>
+                        </div>
+                      )}
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setIsPreviewOpen(false)}>
+                          关闭
+                        </AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+
+
 
                   <Button
                     onMouseDown={mail && (mail.archive || mail.name === '系统消息-周报') ? undefined : handleButtonPress}

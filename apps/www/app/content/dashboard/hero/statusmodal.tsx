@@ -124,7 +124,17 @@ export function StatusModal({ entryData, onBackClick }: StatusModalProps) {
       const response = await axios.post('/api/uptime', { days: 1 });
       if (response.data.success) {
         const site = response.data.data.find((site: { name: string }) => site.name === entryData.attributes.siteName);
-        setSiteData(site);
+        setSiteData(prevState => {
+          // 如果 prevState 为 null，就跳过更新
+          if (!prevState) {
+            return prevState;
+          }
+
+          // 如果 prevState 存在，则执行更新逻辑
+          // 但保持7天的平均可用率不变
+          return { ...site, averageUptime: prevState.averageUptime };
+        });
+
       }
     } catch (error) {
       console.error('Failed to fetch site data:', error);
@@ -277,7 +287,7 @@ export function StatusModal({ entryData, onBackClick }: StatusModalProps) {
               <Card x-chunk="dashboard-05-chunk-2">
                 <CardHeader className="pb-2">
                   <CardDescription>最近24小时可用百分比</CardDescription>
-                  <CardTitle className="text-4xl">{siteData.averageUptime}%</CardTitle>
+                  <CardTitle className="text-4xl">{siteData.averageUptime.toFixed(1)}%</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-muted-foreground">

@@ -1,32 +1,13 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 type IconProps = React.HTMLAttributes<SVGElement>
 
 export const Icons = {
   logo: (props: IconProps) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {...props}>
-      <rect width="256" height="256" fill="none" />
-      <line
-        x1="208"
-        y1="128"
-        x2="128"
-        y2="208"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="192"
-        y1="40"
-        x2="40"
-        y2="192"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-    </svg>
+    <svg d="1712559136306" className="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1503" width="20" height="20"><path d="M571.392 87.074133l-0.631467 0.8704-356.9152 465.92c-10.222933 14.4384-12.544 32.512-3.669333 48.503467l2.013867 3.310933c8.618667 14.677333 23.808 22.766933 40.891733 22.766934l190.122667-0.017067-45.841067 270.08-0.631467 2.679467c-4.437333 21.128533 6.144 39.5776 24.832 48.401066l2.372267 1.024 0.529067 0.324267c5.12 2.696533 10.7008 4.215467 16.4352 4.642133l3.464533 0.136534c13.755733 0 26.368-5.410133 36.078933-15.121067a34.133333 34.133333 0 0 0 3.7376-4.437333L812.032 472.576a34.133333 34.133333 0 0 0 5.632-13.090133c2.048-10.376533 2.048-20.48-0.375467-30.173867a34.133333 34.133333 0 0 0-2.645333-7.133867l-1.6384-3.003733c-8.6528-14.557867-23.773867-22.596267-40.789333-22.596267l-162.833067-0.017066 46.165333-272.093867a34.133333 34.133333 0 0 0 0.477867-5.700267l-0.068267-3.072c-0.9216-18.312533-9.984-34.2016-26.760533-41.2672l-1.143467-0.426666-1.006933-0.597334c-19.694933-10.581333-41.984-4.539733-55.671467 13.6704z m2.833067 108.5952l-38.894934 229.3248-0.341333 2.491734a34.133333 34.133333 0 0 0 33.9968 37.358933l164.898133-0.017067-254.856533 360.379734 38.229333-225.1776 0.341334-2.491734a34.133333 34.133333 0 0 0-33.979734-37.376H294.980267l279.2448-364.4928z" fill="#444444" p-id="1504"></path><path d="M828.672 559.616a34.133333 34.133333 0 0 1 30.122667 54.698667l-99.874134 135.0656-55.7568-39.389867 100.608-136.055467 0.256-0.3584a34.048 34.048 0 0 1 24.644267-13.943466z" fill="#00B386" p-id="1505"></path></svg>
   ),
   twitter: (props: IconProps) => (
     <svg

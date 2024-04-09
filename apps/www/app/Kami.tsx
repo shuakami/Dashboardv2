@@ -106,7 +106,7 @@ const KamiUI = () => {
           </button>
         </div>
         {isExpanded && (
-        <div className="mt-1 flex-1 overflow-auto border-t p-5" style={{marginTop: '4.4px'}}>
+        <div className="mt-1 flex-1 overflow-auto border-t p-5" style={{marginTop: '8.0px'}}>
           <motion.h2
             animate={welcomeAnimation()}
             transition={{duration: 4, repeat: Infinity, repeatType: 'reverse'}}

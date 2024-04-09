@@ -271,12 +271,13 @@ export const verifyDynamicCode = async (token: string, password: string) => {
           return true;
         } else {
           message.error('验证未通过，请确保你是在授权的设备上操作。');
-          return false;
+          // 返回一个包含特定标识的对象
+          return { success: false, error: 'Verification required', jwt: jwt };
         }
-
       } catch (error) {
-        message.error('验证未通过，请确保你是在授权的设备上操作。');
-        return false;
+        message.warning('验证吧，登录信息有点小问题。');
+        // 返回一个包含特定标识的对象
+        return { success: false, error: 'Verification required', jwt: jwt };
       }
 
     }

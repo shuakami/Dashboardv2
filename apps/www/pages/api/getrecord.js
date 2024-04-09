@@ -38,17 +38,27 @@ export default async function handler(req, res) {
       const ipParts = record.attributes.ip.split('.');
       const hiddenIp = `${ipParts[0]}.${ipParts[1]}.xxx.xxx`;
 
-      const fingerprintLength = record.attributes.fingerprint.length;
-      const hiddenFingerprint = `${record.attributes.fingerprint.substring(0, fingerprintLength - 4)}xxxx`;
 
-      return {
-        ...record,
-        attributes: {
-          ...record.attributes,
-          ip: hiddenIp,
-          fingerprint: hiddenFingerprint,
-        },
-      };
+      if (record.attributes.fingerprint === "登录邮箱验证成功") {
+        return {
+          ...record,
+          attributes: {
+            ...record.attributes,
+            ip: hiddenIp,
+          },
+        };
+      } else {
+        const fingerprintLength = record.attributes.fingerprint.length;
+        const hiddenFingerprint = `${record.attributes.fingerprint.substring(0, fingerprintLength - 4)}xxxx`;
+        return {
+          ...record,
+          attributes: {
+            ...record.attributes,
+            ip: hiddenIp,
+            fingerprint: hiddenFingerprint,
+          },
+        };
+      }
     });
 
     res.status(200).json(records);

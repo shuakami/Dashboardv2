@@ -13,6 +13,7 @@ import { Mail } from "@/app/content/mail/components/mail"
 import { accounts, mails } from "@/app/content/mail/data"
 import React, {useEffect, useRef, useState} from "react";
 import Loading from "@/app/content/mail/loading";
+import { useTheme } from 'next-themes';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -30,7 +31,6 @@ import { toast } from '@/registry/new-york/ui/use-toast';
 export default function MailPage() {
   const layoutCookie = Cookies.get("react-resizable-panels:layout");
   const collapsedCookie = Cookies.get("react-resizable-panels:collapsed");
-  const [theme, setTheme] = useState('light');
   const defaultLayout = layoutCookie ? JSON.parse(layoutCookie) : undefined;
   const defaultCollapsed = collapsedCookie ? JSON.parse(collapsedCookie) : undefined;
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -46,6 +46,8 @@ export default function MailPage() {
   const [userId, setUserId] = useState('');
   const [privacyversion, setPrivacyversion] = useState('');
   const [termsversion, setTermsversion] = useState('');
+  const { theme, setTheme } = useTheme();
+
 
 
   useEffect(() => {
@@ -197,13 +199,7 @@ export default function MailPage() {
 
 
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
+
 
   const changeTheme = (newTheme: string) => {
     setTheme(newTheme);
@@ -273,13 +269,13 @@ export default function MailPage() {
 
 // 根据用户设置调整页面样式
   const adjustPageStyles = (settings: { theme: string; font: any; backgroundtransparency: string; }) => {
-    document.documentElement.classList.remove('dark'); // 先移除可能的 dark 类
+
     if (settings.theme === 'dark') {
-      changeTheme('dark')
-      document.documentElement.classList.add('dark');
+      setTheme('dark');
     } else if (settings.theme === 'light') {
-      document.documentElement.classList.remove('dark');
-      changeTheme('system')
+      setTheme('light');
+    } else {
+      setTheme('system'); // 使用 'system' 来自动匹配用户系统的主题偏好
     }
 
     loadFont(settings.font);

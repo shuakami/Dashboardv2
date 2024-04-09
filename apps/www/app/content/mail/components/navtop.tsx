@@ -24,23 +24,17 @@ import {AccountSwitcher} from "@/app/content/mail/components/account-switcher";
 import * as React from "react";
 import {cn} from "@/lib/utils";
 import {CopyrightModal} from "@/app/copyright"
+import {useTheme} from "next-themes";
 
 // @ts-ignore
 export function Navtop({ unreadMailsCount, setSelectedLink, setShowSettings,setShowDashboard }) {
-  const [theme, setTheme] = useState('light');
+  const { theme, setTheme } = useTheme();
   const [showCopyrightModal, setShowCopyrightModal] = useState(false);
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
 
   const changeTheme = (newTheme: string) => {
     setTheme(newTheme);
   };
+
 
   return (
     <Menubar style={{backdropFilter: 'blur(7px)'}} className="rounded-none border-t-0 bg-white/5 shadow-none dark:bg-black/5">
@@ -131,13 +125,13 @@ export function Navtop({ unreadMailsCount, setSelectedLink, setShowSettings,setS
               <MenubarSub>
                 <MenubarSubTrigger>🎨 主题</MenubarSubTrigger>
                 <MenubarSubContent>
-                  <MenubarItem onClick={() => changeTheme('light')}>
+                  <MenubarItem onClick={() => setTheme('light')}>
                     🌞 明亮模式
                   </MenubarItem>
-                  <MenubarItem onClick={() => changeTheme('dark')}>
+                  <MenubarItem onClick={() => setTheme('dark')}>
                     🌙 暗黑模式
                   </MenubarItem>
-                  <MenubarItem onClick={() => changeTheme('system')}>
+                  <MenubarItem onClick={() => setTheme('system')}>
                     🖥️ 跟随系统
                   </MenubarItem>
                 </MenubarSubContent>

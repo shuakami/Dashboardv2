@@ -3,6 +3,26 @@
  * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
  */
 
+/* styles/globals.css */
+@font-face {
+  font-family: 'OPPOSans';
+  src: url('/font/opposans.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body, body * {
+  font-family: 'MiSans', 'OPPOSans', 'HarmonyOS Sans', 'PingFang SC', 'Roboto', 'Noto Sans', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif !important;
+}
+
+.drawerContent {
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out;
+  max-height: 0; /* 初始值 */
+}
+
+
 
 
 /* 针对Next.js的根容器样式 */
@@ -226,20 +246,12 @@ html::-webkit-scrollbar {
   }
 }
 
-@font-face {
-  font-family: 'Siyuan';
-  src: url('/fonts/MiSans-Medium.woff2') format('woff2'),
-  url('/fonts/MiSans-Medium.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
+
 .input-no-outline:focus {
   outline: none !important;
   box-shadow: none !important; /* 去除部分浏览器的内阴影 */
 }
-.Siyuan-font {
-  font-family: 'Siyuan', sans-serif;
-}
+
 .accordion-item {
   will-change: transform;
   transform-origin: left; /* 或根据实际情况调整 */
@@ -339,11 +351,7 @@ html::-webkit-scrollbar {
 .ant-modal-mask {
   backdrop-filter: blur(5px); /* Adjust the blur value as needed */
 }
-.custom-background {
-  background-image: url('/img/Shuakami_2024-02-05_20-37-33.png');
-  background-size: cover; /* 或使用 contain 根据需求 */
-  background-position: center;
-}
+
 .card-content-transition {
   transition: all 1.5s ease-out;
 }

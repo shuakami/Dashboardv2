@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
+ * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ */
+
 import { createContentlayerPlugin } from "next-contentlayer"
 
 /** @type {import('next').NextConfig} */
@@ -23,39 +28,19 @@ const nextConfig = {
   redirects() {
     return [
       {
-        source: "/components",
-        destination: "/docs/components/accordion",
+        source: '/privacy',
+        destination: '/docs/privacy',
         permanent: true,
       },
       {
-        source: "/docs/components",
-        destination: "/docs/components/accordion",
+        source: '/policy',
+        destination: '/docs/terms',
         permanent: true,
       },
       {
-        source: "/content",
-        destination: "/content/mail",
-        permanent: false,
-      },
-      {
-        source: "/docs/primitives/:path*",
-        destination: "/docs/components/:path*",
+        source: '/terms',
+        destination: '/docs/terms',
         permanent: true,
-      },
-      {
-        source: "/figma",
-        destination: "/docs/figma",
-        permanent: true,
-      },
-      {
-        source: "/docs/forms",
-        destination: "/docs/components/form",
-        permanent: false,
-      },
-      {
-        source: "/docs/forms/react-hook-form",
-        destination: "/docs/components/form",
-        permanent: false,
       },
     ]
   },
