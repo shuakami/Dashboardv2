@@ -36,7 +36,7 @@ import {
 } from "@/registry/new-york/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/new-york/ui/tabs";
 import Link from "next/link";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {ReloadIcon} from "@radix-ui/react-icons";
 
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
@@ -71,29 +71,6 @@ export function ReportDrawer({ mail, open, onClose }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showPenaltyReason, setShowPenaltyReason] = useState(false);
-  const [tabValue, setTabValue] = useState('violation'); // 默认选中的Tab
-  const drawerContentRef = useRef(null); // 用于引用 DrawerContent 的 DOM 元素
-
-
-  useEffect(() => {
-    if (drawerContentRef.current) {
-      // 用一个小技巧先设置 max-height 为 'none' 来获取实际高度
-      // @ts-ignore
-      drawerContentRef.current.style.maxHeight = 'none';
-      // @ts-ignore
-      const actualHeight = drawerContentRef.current.offsetHeight;
-
-      // 然后立即将 max-height 设置为实际高度来启用动画
-      // @ts-ignore
-      drawerContentRef.current.style.maxHeight = '300px'; // 重置为0来确保动画从头开始
-      setTimeout(() => {
-        // @ts-ignore
-        drawerContentRef.current.style.maxHeight = `${actualHeight}px`;
-      }, 0.4); // 短暂延迟确保 max-height 从 0 开始动画
-    }
-  }, [tabValue]); // 当 tabValue 变化时触发
-
-
 
 
   // 生成基于邮件标题和内容的唯一键
@@ -106,15 +83,15 @@ export function ReportDrawer({ mail, open, onClose }) {
     const uniqueKey = generateUniqueKeyForMail(mail);
     const data = {
       data: {
-          reportId: uniqueKey,
-          mailId: uniqueKey, // Assuming mailId is the same as reportId in this context
-          title: mail.title,
-          content: mail.content,
-          date: new Date().toISOString(),
-          reportedAt: null,
-          resultMessage: reportResult.resultMessage,
-          penaltyDuration: reportResult.penaltyDuration,
-          penaltyReason: reportResult.penaltyReason,
+        reportId: uniqueKey,
+        mailId: uniqueKey, // Assuming mailId is the same as reportId in this context
+        title: mail.title,
+        content: mail.content,
+        date: new Date().toISOString(),
+        reportedAt: null,
+        resultMessage: reportResult.resultMessage,
+        penaltyDuration: reportResult.penaltyDuration,
+        penaltyReason: reportResult.penaltyReason,
       }
     };
 
@@ -256,7 +233,7 @@ export function ReportDrawer({ mail, open, onClose }) {
   // @ts-ignore
   return (
     <Drawer open={open} onOpenChange={onClose}>
-      <DrawerContent ref={drawerContentRef} className="drawerContent">
+      <DrawerContent>
         <div className="mx-auto w-full max-w-md p-4">
           {isLoading || isFadingOut ? (
             <div style={{
@@ -274,241 +251,241 @@ export function ReportDrawer({ mail, open, onClose }) {
                 <DrawerTitle className="text-center">举报</DrawerTitle>
                 {!showResult && (
                   <DrawerDescription className="mt-2 text-center">
-                您正在举报一封邮件 请确认以下信息无误后提交
-                <br></br>
-                我们可能会使用您和他人的对话内容来判断是否涉嫌违规
-              </DrawerDescription>
-            )}
-          </DrawerHeader>
-          {!showResult ? (
-            <>
-              <div className="mt-6">
-                <div className="mb-4 text-center text-lg font-semibold">{mail.title}</div>
-                <p className="custom-scroll dark:bg-dark mx-auto max-h-[330px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap rounded  p-4 text-sm dark:text-white"
-                   style={{maxWidth: '100%'}}>{mail.content}</p>
-              </div>
-              <DrawerFooter className="mt-6 flex justify-center">
-                <div className="flex justify-center space-x-2">
-                  <DrawerClose asChild>
-                  <Button variant="outline" className="flex-1">取消</Button>
-                  </DrawerClose>
-                  {isSubmitting ? (
-                    <>
-                    <Button disabled className="flex-1">
-                      <ReloadIcon className="mr-2 h-4 w-4 animate-spin"/>
-                      提交中
-                    </Button>
-                    </>
-                  ) : (
-                  <Button onClick={submitReport} disabled={isSubmitting} className="flex-1">提交举报</Button>
-                  )}
-                </div>
-              </DrawerFooter>
-              <div
-                className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
-                <Shield size={16}/>
-                <span>ByteFreeze安全 V1.0.3</span>
-              </div>
-            </>
-          ) : (
-            <Tabs value={tabValue} onValueChange={setTabValue} className=" w-full max-w-4xl">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="violation">违规信息</TabsTrigger>
-                <TabsTrigger value="penalty">封号详情</TabsTrigger>
-                <TabsTrigger value="manualReview">人工复审</TabsTrigger>
-              </TabsList>
-              <TabsContent value="manualReview">
-                <Card className="border-none shadow-none">
-                  <CardHeader>
-                    <CardTitle>人工复审结果</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {reportResult?.manualReviewComments === "认可" && (
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">人工已复审</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-                          此举报请求已经维持原判，具体可切换 封号详情 查看🐳
-                        </p>
-                      </div>
-                    )}
-                    {reportResult?.manualReviewComments === "不违规" && (
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-                          如您有更多意见，如申请再次复查可发送邮箱至🌟
-                          <a href="mailto:admin@sdjz.wiki"
-                             className="text-blue-500 underline">admin@sdjz.wiki</a>🌟
-                        </p>
-                      </div>
-                    )}
-                    {reportResult?.manualReviewComments === "违规" && (
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">违规</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-
-                          <table>
-                            <tbody className="dark:bg-dark divide-y divide-gray-200 dark:text-white">
-                            <tr>
-                              <td
-                                className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                                封号时长
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
-                                {reportResult?.manualpenaltyReason}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td
-                                className="whitespace-nowrap px-6 py-4 text-sm  font-medium text-gray-900 dark:text-white">
-                                封号原因
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4 text-sm  text-gray-500 dark:text-white">
-                                {reportResult.manualReviewpenaltyDuration}
-                              </td>
-                            </tr>
-                            </tbody>
-                          </table>
-                        </p>
-                      </div>
-                    )}
-                    {(!reportResult?.manualReviewComments || reportResult?.manualReviewComments !== "认可" && reportResult?.manualReviewComments !== "违规" && reportResult?.manualReviewComments !== "不违规") && (
-                      <div className="flex h-full flex-col items-center justify-center space-y-4">
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">已提交复审</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-                          人工复审尚未完成或未查看此举报请求。
-                        </p>
-                      </div>
-                    )}
-                    <div
-                      className="absolute bottom-4 right-4 flex items-center text-sm text-neutral-400 dark:text-neutral-700"
-                      style={{alignItems: 'center', justifyContent: 'flex-end'}}
-                    >
-                      <div style={{textAlign: 'right', fontSize: '12px'}}>
-                        ByteFreeze审核<br/>
-                        {reportResult?.reportId}
-                        <Check size={12}  className="float-left mb-2.5"/>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="violation">
-                <Card className="border-none shadow-none">
-                  <CardHeader>
-                    <CardTitle>违规信息</CardTitle>
-                    <CardDescription>
-                      这是关于您举报的邮件的处理结果。
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {reportResult && (
-                      reportResult.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
-                        <h2 className="text-2xl font-bold">
-                          人工复审-{reportResult.manualReviewComments}
-                        </h2>
+                    您正在举报一封邮件 请确认以下信息无误后提交
+                    <br></br>
+                    我们可能会使用您和他人的对话内容来判断是否涉嫌违规
+                  </DrawerDescription>
+                )}
+              </DrawerHeader>
+              {!showResult ? (
+                <>
+                  <div className="mt-6">
+                    <div className="mb-4 text-center text-lg font-semibold">{mail.title}</div>
+                    <p className="custom-scroll dark:bg-dark mx-auto max-h-[330px] flex-1 overflow-auto overflow-x-hidden whitespace-pre-wrap rounded  p-4 text-sm dark:text-white"
+                       style={{maxWidth: '100%'}}>{mail.content}</p>
+                  </div>
+                  <DrawerFooter className="mt-6 flex justify-center">
+                    <div className="flex justify-center space-x-2">
+                      <DrawerClose asChild>
+                        <Button variant="outline" className="flex-1">取消</Button>
+                      </DrawerClose>
+                      {isSubmitting ? (
+                        <>
+                          <Button disabled className="flex-1">
+                            <ReloadIcon className="mr-2 h-4 w-4 animate-spin"/>
+                            提交中
+                          </Button>
+                        </>
                       ) : (
-                        <h2 className="text-2xl font-bold">{reportResult.resultMessage}</h2>
-                      )
-                    )}
-                  </CardContent>
-
-                  <div className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
+                        <Button onClick={submitReport} disabled={isSubmitting} className="flex-1">提交举报</Button>
+                      )}
+                    </div>
+                  </DrawerFooter>
+                  <div
+                    className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
                     <Shield size={16}/>
                     <span>ByteFreeze安全 V1.0.3</span>
                   </div>
-                </Card>
-              </TabsContent>
-              <TabsContent value="penalty">
-                <Card className="border-none shadow-none">
-                  <CardHeader>
-                  <CardTitle>封号详情</CardTitle>
-                  </CardHeader>
-                  {(reportResult?.penaltyDuration === '0天' || reportResult?.penaltyDuration === '零天') && (
-                    <Alert className="ml-8 max-w-80">
-                      <Shield className="h-4 w-4" />
-                      <AlertTitle>小贴士</AlertTitle>
-                      <AlertDescription>
-                        封号时长为0天是因为违规等级构不成封号标准。具体可看
-                        <Link href="/report" style={{ textDecoration: 'underline' }}>
-                          举报政策
-                        </Link>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <CardContent>
-                    {reportResult?.resultMessage.includes("不违规") ? (
-                      <div className="flex h-full flex-col items-center justify-center space-y-4"
-                           style={reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() === "违规" ? { textDecoration: "line-through" } : {}}>
-                        <h2
-                          className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
-                        <p className="leading-7 [&:not(:first-child)]:mt-6">
-                          您举报的内容经过系统评定后，不违反社区规定，不被标记为违规🐳<br className="hidden md:block"/>
-                          不过你的请求已经被提交至社区违规数据库，我们会在30天内给你发送回执邮件😿保证不会放过一个漏网之鱼
-                        </p>
+                </>
+              ) : (
+                <Tabs defaultValue="violation" className="mx-auto w-full max-w-4xl">
+                  <TabsList className="grid grid-cols-3">
+                    <TabsTrigger value="violation">违规信息</TabsTrigger>
+                    <TabsTrigger value="penalty">封号详情</TabsTrigger>
+                    <TabsTrigger value="manualReview">人工复审</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="manualReview">
+                    <Card className="border-none shadow-none">
+                      <CardHeader>
+                        <CardTitle>人工复审结果</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {reportResult?.manualReviewComments === "认可" && (
+                          <div className="flex h-full flex-col items-center justify-center space-y-4">
+                            <h2
+                              className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">人工已复审</h2>
+                            <p className="leading-7 [&:not(:first-child)]:mt-6">
+                              此举报请求已经维持原判，具体可切换 封号详情 查看🐳
+                            </p>
+                          </div>
+                        )}
+                        {reportResult?.manualReviewComments === "不违规" && (
+                          <div className="flex h-full flex-col items-center justify-center space-y-4">
+                            <h2
+                              className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
+                            <p className="leading-7 [&:not(:first-child)]:mt-6">
+                              如您有更多意见，如申请再次复查可发送邮箱至🌟
+                              <a href="mailto:admin@sdjz.wiki"
+                                 className="text-blue-500 underline">admin@sdjz.wiki</a>🌟
+                            </p>
+                          </div>
+                        )}
+                        {reportResult?.manualReviewComments === "违规" && (
+                          <div className="flex h-full flex-col items-center justify-center space-y-4">
+                            <h2
+                              className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">违规</h2>
+                            <p className="leading-7 [&:not(:first-child)]:mt-6">
+
+                              <table>
+                                <tbody className="dark:bg-dark divide-y divide-gray-200 dark:text-white">
+                                <tr>
+                                  <td
+                                    className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                                    封号时长
+                                  </td>
+                                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
+                                    {reportResult?.manualpenaltyReason}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td
+                                    className="whitespace-nowrap px-6 py-4 text-sm  font-medium text-gray-900 dark:text-white">
+                                    封号原因
+                                  </td>
+                                  <td className="whitespace-nowrap px-6 py-4 text-sm  text-gray-500 dark:text-white">
+                                    {reportResult.manualReviewpenaltyDuration}
+                                  </td>
+                                </tr>
+                                </tbody>
+                              </table>
+                            </p>
+                          </div>
+                        )}
+                        {(!reportResult?.manualReviewComments || reportResult?.manualReviewComments !== "认可" && reportResult?.manualReviewComments !== "违规" && reportResult?.manualReviewComments !== "不违规") && (
+                          <div className="flex h-full flex-col items-center justify-center space-y-4">
+                            <h2
+                              className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">已提交复审</h2>
+                            <p className="leading-7 [&:not(:first-child)]:mt-6">
+                              人工复审尚未完成或未查看此举报请求。
+                            </p>
+                          </div>
+                        )}
+                        <div
+                          className="absolute bottom-4 right-4 flex items-center text-sm text-neutral-400 dark:text-neutral-700"
+                          style={{alignItems: 'center', justifyContent: 'flex-end'}}
+                        >
+                          <div style={{textAlign: 'right', fontSize: '12px'}}>
+                            ByteFreeze审核<br/>
+                            {reportResult?.reportId}
+                            <Check size={12}  className="float-left mb-2.5"/>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  <TabsContent value="violation">
+                    <Card className="border-none shadow-none">
+                      <CardHeader>
+                        <CardTitle>违规信息</CardTitle>
+                        <CardDescription>
+                          这是关于您举报的邮件的处理结果。
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {reportResult && (
+                          reportResult.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
+                            <h2 className="text-2xl font-bold">
+                              人工复审-{reportResult.manualReviewComments}
+                            </h2>
+                          ) : (
+                            <h2 className="text-2xl font-bold">{reportResult.resultMessage}</h2>
+                          )
+                        )}
+                      </CardContent>
+
+                      <div className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
+                        <Shield size={16}/>
+                        <span>ByteFreeze安全 V1.0.3</span>
                       </div>
-                    ) : (
-                      <tbody className="dark:bg-dark divide-y divide-gray-200 dark:text-white">
-                      <tr>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                          封号时长
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
-                          {/* 如果有人工复审的违规或不违规意见，则提示查看人工复审结果，否则显示封号时长 */}
-                          {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
-                            "请查看人工复审结果Tab"
-                          ) : (
-                            reportResult?.penaltyDuration
-                          )}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                          封号原因
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
-                          {/* 同上，根据人工复审意见调整显示内容 */}
-                          {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
-                            "请查看人工复审结果Tab"
-                          ) : (
-                            <>
-                              {/* 判断 penaltyReason 长度决定是否显示按钮 */}
-                              {(typeof reportResult?.penaltyReason === 'string' && reportResult.penaltyReason.trim().length > 6) ? (
-                                !showPenaltyReason && (
-                                  <button onClick={() => setShowPenaltyReason(true)}>
-                                    点我查看
-                                  </button>
-                                )
+                    </Card>
+                  </TabsContent>
+                  <TabsContent value="penalty">
+                    <Card className="border-none shadow-none">
+                      <CardHeader>
+                        <CardTitle>封号详情</CardTitle>
+                      </CardHeader>
+                      {(reportResult?.penaltyDuration === '0天' || reportResult?.penaltyDuration === '零天') && (
+                        <Alert className="ml-8 max-w-80">
+                          <Shield className="h-4 w-4" />
+                          <AlertTitle>小贴士</AlertTitle>
+                          <AlertDescription>
+                            封号时长为0天是因为违规等级构不成封号标准。具体可看
+                            <Link href="/report" style={{ textDecoration: 'underline' }}>
+                              举报政策
+                            </Link>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      <CardContent>
+                        {reportResult?.resultMessage.includes("不违规") ? (
+                          <div className="flex h-full flex-col items-center justify-center space-y-4"
+                               style={reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() === "违规" ? { textDecoration: "line-through" } : {}}>
+                            <h2
+                              className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">无违规</h2>
+                            <p className="leading-7 [&:not(:first-child)]:mt-6">
+                              您举报的内容经过系统评定后，不违反社区规定，不被标记为违规🐳<br className="hidden md:block"/>
+                              不过你的请求已经被提交至社区违规数据库，我们会在30天内给你发送回执邮件😿保证不会放过一个漏网之鱼
+                            </p>
+                          </div>
+                        ) : (
+                          <tbody className="dark:bg-dark divide-y divide-gray-200 dark:text-white">
+                          <tr>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                              封号时长
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
+                              {/* 如果有人工复审的违规或不违规意见，则提示查看人工复审结果，否则显示封号时长 */}
+                              {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
+                                "请查看人工复审结果Tab"
                               ) : (
-                                <div>
-                                  {reportResult?.penaltyReason}
-                                </div>
+                                reportResult?.penaltyDuration
                               )}
-                              {/* 根据 showPenaltyReason 控制详情的显示与隐藏 */}
-                              {showPenaltyReason && (
-                                <div style={{ display: showPenaltyReason ? 'block' : 'none' }}>
-                                  {reportResult?.penaltyReason}
-                                </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                              封号原因
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-white">
+                              {/* 同上，根据人工复审意见调整显示内容 */}
+                              {reportResult?.manualReviewComments && reportResult.manualReviewComments.toLowerCase() !== "认可" ? (
+                                "请查看人工复审结果Tab"
+                              ) : (
+                                <>
+                                  {/* 判断 penaltyReason 长度决定是否显示按钮 */}
+                                  {(typeof reportResult?.penaltyReason === 'string' && reportResult.penaltyReason.trim().length > 6) ? (
+                                    !showPenaltyReason && (
+                                      <button onClick={() => setShowPenaltyReason(true)}>
+                                        点我查看
+                                      </button>
+                                    )
+                                  ) : (
+                                    <div>
+                                      {reportResult?.penaltyReason}
+                                    </div>
+                                  )}
+                                  {/* 根据 showPenaltyReason 控制详情的显示与隐藏 */}
+                                  {showPenaltyReason && (
+                                    <div style={{ display: showPenaltyReason ? 'block' : 'none' }}>
+                                      {reportResult?.penaltyReason}
+                                    </div>
+                                  )}
+                                </>
                               )}
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                      </tbody>
-                    )}
-                    <div
-                      className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
-                      <Shield size={16}/>
-                      <span>ByteFreeze安全 V1.0.3</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
+                            </td>
+                          </tr>
+                          </tbody>
+                        )}
+                        <div
+                          className="absolute bottom-4 right-4 flex items-center space-x-2 text-sm text-neutral-400 dark:text-neutral-700">
+                          <Shield size={16}/>
+                          <span>ByteFreeze安全 V1.0.3</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              )}
             </>
           )}
         </div>
@@ -544,11 +521,11 @@ async function generateLabels(text: string): Promise<string> {
 
   try {
     const response = await axios.post(url, JSON.stringify(data), {headers});
-   // console.log("Response:", response.data);
+    // console.log("Response:", response.data);
     const labels = response.data.choices[0].message.content;
     return labels;
   } catch (error) {
-  //  console.error("在判断违规的时候报错了:", error);
+    //  console.error("在判断违规的时候报错了:", error);
     return '';
   }
 }
