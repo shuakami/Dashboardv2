@@ -28,6 +28,11 @@ export const docsConfig: DocsConfig = {
           href: "/docs/terms",
           items: [],
         },
+        {
+          title: "社区准则与举报管理细则",
+          href: "/docs/report",
+          items: [],
+        },
       ],
     },
     {

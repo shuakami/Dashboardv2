@@ -33,6 +33,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/report',
+        destination: '/docs/report',
+        permanent: true,
+      },
+      {
         source: '/policy',
         destination: '/docs/terms',
         permanent: true,

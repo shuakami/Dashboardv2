@@ -26,8 +26,10 @@ export default async function handler(req, res) {
     if (securityPolicy === "none") {
       return res.status(200).json({ message: "Access granted due to 'none' security policy." });
     }
-    // 根据用户的securityPolicy来定制系统提示
 
+
+    // 根据用户的securityPolicy来定制系统提示
+    // V3_1014 Prompt System
     switch (securityPolicy) {
       case 'low':
         promptSystem = `作为高级的人工智能安全系统，你的任务是根据低安全度策略来判断是否允许用户登录。低安全度非常宽松，基本上允许所有登录尝试，除非存在极其异常的情况。`;

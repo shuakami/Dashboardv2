@@ -178,6 +178,24 @@ export function ReportDrawer({ mail, open, onClose }) {
   }, [mail.title, mail.content]);
 
 
+  const TipsReportNone = () => {
+    toast({
+      title: "小贴士",
+      description: (<div>封号时长为0天是因为违规等级构不成封号标准<br/>
+        <Link className="text-blue-500" href="/report#6-违规行为分类与判定细则" target="_blank">
+          举报政策
+        </Link>
+      </div>),
+      duration: 8000,
+    });
+  };
+
+  React.useEffect(() => {
+    if (reportResult?.penaltyDuration === '0天' || reportResult?.penaltyDuration === '零天') {
+      TipsReportNone();
+    }
+  }, [reportResult?.penaltyDuration]);
+
 
   async function submitReport() {
     setIsSubmitting(true); // 开始提交前，标记为正在提交
@@ -404,18 +422,7 @@ export function ReportDrawer({ mail, open, onClose }) {
                       <CardHeader>
                         <CardTitle>封号详情</CardTitle>
                       </CardHeader>
-                      {(reportResult?.penaltyDuration === '0天' || reportResult?.penaltyDuration === '零天') && (
-                        <Alert className="ml-8 max-w-80">
-                          <Shield className="h-4 w-4" />
-                          <AlertTitle>小贴士</AlertTitle>
-                          <AlertDescription>
-                            封号时长为0天是因为违规等级构不成封号标准。具体可看
-                            <Link href="/report" style={{ textDecoration: 'underline' }}>
-                              举报政策
-                            </Link>
-                          </AlertDescription>
-                        </Alert>
-                      )}
+
                       <CardContent>
                         {reportResult?.resultMessage.includes("不违规") ? (
                           <div className="flex h-full flex-col items-center justify-center space-y-4"
