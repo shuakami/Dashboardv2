@@ -26,7 +26,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { toast } from '@/registry/new-york/ui/use-toast';
-
+import Birthday from "@/app/Birthday";
 
 export default function MailPage() {
   const layoutCookie = Cookies.get("react-resizable-panels:layout");
@@ -320,7 +320,9 @@ export default function MailPage() {
 
   return (
     <>
+
       <div className="relative flex h-full flex-col overflow-hidden">
+        <Birthday/>
         <CSSTransition
           in={videoVisible} // 根据视频是否可见来触发动画
           timeout={270}

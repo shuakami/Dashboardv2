@@ -1,12 +1,11 @@
 {
-  "name": "ui",
+  "name": "bytefrreze_dashboard",
   "version": "0.0.1",
   "private": true,
-  "license": "MIT",
   "type": "module",
   "author": {
-    "name": "shadcn",
-    "url": "https://twitter.com/shadcn"
+    "name": "shuakami",
+    "url": "https://sdjz.wiki"
   },
   "workspaces": [
     "apps/*",
@@ -95,12 +94,14 @@
     "md5": "^2.3.0",
     "next-i18next": "^15.2.0",
     "next-mdx-remote": "^4.4.1",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "plyr": "^3.7.8",
     "postcss": "^8.4.24",
     "prettier": "^2.8.8",
     "pretty-quick": "^3.1.3",
     "react-chartjs-2": "^5.2.0",
+    "react-confetti": "^6.1.0",
     "react-markdown": "^9.0.1",
     "react-player": "^2.15.1",
     "react-spring": "^9.7.3",

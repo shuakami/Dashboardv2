@@ -22,7 +22,10 @@ body, body * {
   max-height: 0; /* 初始值 */
 }
 
-
+.爆炒 {
+  position: relative;
+  z-index: 3000000 !important;
+}
 
 
 /* 针对Next.js的根容器样式 */
