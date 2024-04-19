@@ -98,8 +98,8 @@ export function AccountForm() {
     defaultValues: {
       // @ts-ignore
       icon: userData?.icon,
-      // @ts-ignore
-      dob: userData ? new Date(userData.birthtime) : undefined,
+// @ts-ignore
+      dob: userData ? format(new Date(userData.birthtime), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : undefined,
       // @ts-ignore
       language: userData?.language,
     },
@@ -109,19 +109,23 @@ export function AccountForm() {
     const jwt = Cookies.get('jwt');
     if (jwt && userId) {
       try {
-        // 检查是否有提供生日日期，如果有则将其转换为ISO日期部分的字符串
-        const birthtime = data.dob ? formatISO(data.dob, { representation: 'date' }) : null;
+        // 直接使用选定日期并附加 'T00:00:00.000Z' 确保是UTC时间
+        const birthtime = data.dob ? format(data.dob, "yyyy-MM-dd") + 'T00:00:00.000Z' : null;
 
         const submitData = {
           ...data,
-          birthtime,
+          birthtime: birthtime,  // 确保UTC时间发送给API
         };
 
-        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
+        console.log("Submitting data:", submitData);  // 添加日志记录提交的数据
+
+        const response = await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         });
+
+        console.log("API response:", response.data);  // 添加日志记录API响应
 
         toast({ title: "Account updated successfully" });
       } catch (error) {
@@ -130,6 +134,7 @@ export function AccountForm() {
       }
     }
   };
+
 
 
   return (
