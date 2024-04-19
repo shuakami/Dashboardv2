@@ -109,15 +109,24 @@ export function AccountForm() {
     const jwt = Cookies.get('jwt');
     if (jwt && userId) {
       try {
-        // 直接使用选定日期并附加 'T00:00:00.000Z' 确保是UTC时间
+        // 使用format来构造UTC日期字符串
         const birthtime = data.dob ? format(data.dob, "yyyy-MM-dd") + 'T00:00:00.000Z' : null;
+
+        // 比较原始数据和当前表单数据，检查生日是否被更改
+        // @ts-ignore
+        const originalBirthtime = userData && userData.birthtime ? format(new Date(userData.birthtime), "yyyy-MM-dd") + 'T00:00:00.000Z' : null;
+        if (birthtime !== originalBirthtime) {
+          // 如果生日有变动，清除本地存储的birthdayInfo
+          localStorage.removeItem('birthdayInfo');
+          console.log('Local storage cleared due to birthday change');
+        }
 
         const submitData = {
           ...data,
-          birthtime: birthtime,  // 确保UTC时间发送给API
+          birthtime: birthtime,
         };
 
-        console.log("Submitting data:", submitData);  // 添加日志记录提交的数据
+        console.log("Submitting data:", submitData);
 
         const response = await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
           headers: {
@@ -125,7 +134,7 @@ export function AccountForm() {
           },
         });
 
-        console.log("API response:", response.data);  // 添加日志记录API响应
+        console.log("API response:", response.data);
 
         toast({ title: "Account updated successfully" });
       } catch (error) {
@@ -134,6 +143,7 @@ export function AccountForm() {
       }
     }
   };
+
 
 
 
