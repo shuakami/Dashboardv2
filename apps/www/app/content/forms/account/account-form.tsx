@@ -16,6 +16,7 @@ import Cookies from 'js-cookie';
 import { cn } from "@/lib/utils"
 import { Button } from "@/registry/new-york/ui/button"
 import { Calendar } from "@/registry/new-york/ui/calendar"
+import { formatISO } from 'date-fns';
 import {
   Command,
   CommandEmpty,
@@ -108,11 +109,20 @@ export function AccountForm() {
     const jwt = Cookies.get('jwt');
     if (jwt && userId) {
       try {
-        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, data, {
+        // 检查是否有提供生日日期，如果有则将其转换为ISO日期部分的字符串
+        const birthtime = data.dob ? formatISO(data.dob, { representation: 'date' }) : null;
+
+        const submitData = {
+          ...data,
+          birthtime,
+        };
+
+        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         });
+
         toast({ title: "Account updated successfully" });
       } catch (error) {
         console.error('Failed to update account', error);

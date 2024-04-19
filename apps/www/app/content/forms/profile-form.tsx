@@ -168,22 +168,11 @@ export function ProfileForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a verified email to display" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {emailOptions.map((email) => (
-                    <SelectItem key={email.value} value={email.value}>
-                      {email.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input type="email" placeholder="Enter your email" {...field} />
+              </FormControl>
               <FormDescription>
-                You can manage verified email addresses in your email settings
+                This email will be used for account notifications and password recovery.
               </FormDescription>
               <FormMessage />
             </FormItem>
