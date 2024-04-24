@@ -16,7 +16,8 @@
         "NEXT_PUBLIC_LA_ID",
         "NEXT_PUBLIC_RECAPTCHA_KEY",
         "NEXT_PUBLIC_MATOMO_URL",
-        "NEXT_PUBLIC_MATOMO_SITE_ID"
+        "NEXT_PUBLIC_MATOMO_SITE_ID",
+        "NEXT_PUBLIC_OPENAI_KEY"
       ],
       "outputs": ["dist/**", ".next/**"]
     },
