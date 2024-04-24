@@ -78,7 +78,7 @@ const BlockedPage = () => {
 
   const handleDetailsClick = async () => {
     try {
-      const { data: responseData } = await axios.get<BlockedUserResponse>(`https://xn--7ovw36h.love/api/blockeds`);
+      const { data: responseData } = await axios.get<BlockedUserResponse>(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/blockeds`);
       const userBlockedInfo = responseData.data.find((item) => item.attributes.user === username)?.attributes;
       if (userBlockedInfo) {
         setBlockedDetails(userBlockedInfo);

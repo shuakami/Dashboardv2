@@ -10,7 +10,13 @@
         "UPSTASH_REDIS_REST_TOKEN",
         "COMPONENTS_REGISTRY_URL",
         "npm_config_user_agent",
-        "https_proxy"
+        "https_proxy",
+        "NEXT_PUBLIC_STRAPI_URL",
+        "NEXT_PUBLIC_OPENAI_URL",
+        "NEXT_PUBLIC_LA_ID",
+        "NEXT_PUBLIC_RECAPTCHA_KEY",
+        "NEXT_PUBLIC_MATOMO_URL",
+        "NEXT_PUBLIC_MATOMO_SITE_ID"
       ],
       "outputs": ["dist/**", ".next/**"]
     },

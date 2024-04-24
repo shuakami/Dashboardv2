@@ -39,7 +39,7 @@ const archiveEmails = async (days: number) => {
 
   try {
     console.log(`[Action] - 开始获取邮件...`);
-    const response = await axios.get('https://xn--7ovw36h.love/api/mails');
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`);
     const mails = response.data.data;
     console.log(`[Action] - 获取到 ${mails.length} 封邮件`);
 
@@ -53,7 +53,7 @@ const archiveEmails = async (days: number) => {
 
     console.log(`[Action] - 开始归档邮件...`);
     for (const mail of filteredMails) {
-      await axios.put(`https://xn--7ovw36h.love/api/mails/${mail.id}`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails/${mail.id}`, {
         data: {
           archive: "true",
         },
@@ -73,7 +73,7 @@ const archiveEmails = async (days: number) => {
 const rearchiveEmails = async (days: number) => {
   try {
     console.log(`[Action] - 开始获取邮件...`);
-    const response = await axios.get('https://xn--7ovw36h.love/api/mails');
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`);
     const mails = response.data.data;
 
     const filteredMails = mails.filter((mail: any) => {
@@ -86,7 +86,7 @@ const rearchiveEmails = async (days: number) => {
 
     console.log(`[Action] - 开始取消归档邮件...`);
     for (const mail of filteredMails) {
-      await axios.put(`https://xn--7ovw36h.love/api/mails/${mail.id}`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails/${mail.id}`, {
         data: {
           archive: null,
         },
@@ -119,7 +119,7 @@ const sendEmail = async (email: string, content: string) => {
       currentViewingMailTitle: null
     };
 
-    const response = await axios.post('https://xn--7ovw36h.love/api/mails', {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`, {
       data: mailOptions
     });
 
@@ -137,7 +137,7 @@ const sendEmail = async (email: string, content: string) => {
 // 快速整理邮件函数
 const quickOrganizeEmails = async (days: number) => {
   try {
-    const response = await axios.get('https://xn--7ovw36h.love/api/mails');
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`);
     const mails = response.data.data;
 
     const filteredMails = mails.filter((mail: any) => {

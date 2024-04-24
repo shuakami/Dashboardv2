@@ -17,7 +17,7 @@ let currentDay = new Date().getDate();
 // 从Strapi后端获取特定用户的数据
 async function fetchUser(userId) {
   try {
-    const url = `https://xn--7ovw36h.love/api/users/${userId}`;
+    const url = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`;
     console.log('请求的URL:', url);
     const response = await axios.get(url);
     console.log('API返回的用户数据:', response.data);
@@ -72,7 +72,7 @@ async function sendBirthdayNotification(data) {
     };
 
     try {
-      const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`, postData, {
         headers: {
           'Content-Type': 'application/json',
         }

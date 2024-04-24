@@ -7,6 +7,10 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 export default async function handler(req, res) {
+
+
+
+
   if (req.method !== 'POST') {
     return res.status(405).json({ message: '只支持POST请求' });
   }
@@ -20,7 +24,7 @@ export default async function handler(req, res) {
   console.log('接收到的验证码:', code);
 
   try {
-    const userResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+    const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -34,7 +38,7 @@ export default async function handler(req, res) {
     }
 
     // 首先，删除该用户的所有旧验证码记录
-    const fetchResponse = await axios.get(`https://xn--7ovw36h.love/api/verification-codes?filters[email][$eq]=${email}`, {
+    const fetchResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/verification-codes?filters[email][$eq]=${email}`, {
       headers: {
         Authorization: `Bearer 8f03f4460f706f1a80aee772b6ee7b9cd91ff1d6fa9b5de04bf316959c7f94ef6f608321a022e544a6aa0693e367f98204055bd327a4c1a2159cc5d90365705c1ea4e42c3af8a05b562f181b1be59f4937f3853e72d36d080202b63ede09bf09a8db2ba01c0af5148dbf94068532f5c2c6567cc23ec4f97a32b78712d67d8086`,
       },
@@ -50,14 +54,14 @@ export default async function handler(req, res) {
 
     // 遍历并删除每条记录
     for (const record of oldVerificationRecords) {
-      await axios.delete(`https://xn--7ovw36h.love/api/verification-codes/${record.id}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/verification-codes/${record.id}`, {
         headers: {
           Authorization: `Bearer 8f03f4460f706f1a80aee772b6ee7b9cd91ff1d6fa9b5de04bf316959c7f94ef6f608321a022e544a6aa0693e367f98204055bd327a4c1a2159cc5d90365705c1ea4e42c3af8a05b562f181b1be59f4937f3853e72d36d080202b63ede09bf09a8db2ba01c0af5148dbf94068532f5c2c6567cc23ec4f97a32b78712d67d8086`,
         },
       });
     }
 
-    const verificationResponse = await axios.get(`https://xn--7ovw36h.love/api/verification-codes`, {
+    const verificationResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/verification-codes`, {
       params: {
         filters: {
           email: {
@@ -98,7 +102,7 @@ export default async function handler(req, res) {
 
       const deleteVerificationCode = async (id) => {
         console.log(`正在删除验证码记录: ${id}`);
-        await axios.delete(`https://xn--7ovw36h.love/api/verification-codes/${id}`, {
+        await axios.delete(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/verification-codes/${id}`, {
           headers: {
             Authorization: `Bearer 8f03f4460f706f1a80aee772b6ee7b9cd91ff1d6fa9b5de04bf316959c7f94ef6f608321a022e544a6aa0693e367f98204055bd327a4c1a2159cc5d90365705c1ea4e42c3af8a05b562f181b1be59f4937f3853e72d36d080202b63ede09bf09a8db2ba01c0af5148dbf94068532f5c2c6567cc23ec4f97a32b78712d67d8086`,
           },
@@ -117,22 +121,36 @@ export default async function handler(req, res) {
           let ip;
           try {
             // 使用JWT获取用户信息
-            const userResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+            const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
               headers: {
                 'Authorization': `Bearer ${jwt}`
               }
             });
             username = userResponse.data.username;
 
+
+            let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            if (ip.substr(0, 7) === "::ffff:") {
+              ip = ip.substr(7);
+            }
+            if (ip.startsWith("10.") || ip.startsWith("192.168.") || ip === "127.0.0.1" ||
+              ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip === "::1" || ip.startsWith("fc00:") || ip.startsWith("fd00:")) {
+              ip = "1.1.1.1";  // 使用 Cloudflare 的公开 DNS 服务器 IP 作为示例
+            }
+
             // 获取IP信息
-            const ipResponse = await axios.get('https://ip.useragentinfo.com/jsonp');
-            const match = ipResponse.data.match(/callback\((.*)\);?/);
-            if (!match || match.length < 2) throw new Error('无法解析IP信息');
-            const ipInfo = JSON.parse(match[1]);
-            ip = ipInfo.ip;
+            const ipInfoResponse = await axios.get(`https://opendata.baidu.com/api.php?query=${ip}&co=&resource_id=6006&oe=utf8`);
+
+            const ipInfo = ipInfoResponse.data.data[0];
+            console.log(`解析到的IP信息: ${JSON.stringify(ipInfoResponse.data)}`);
+            if (ipInfoResponse.data.status !== '0') {
+              console.error('IP信息查询失败', ipInfoResponse.data);
+              throw new Error('IP信息查询失败');
+            }
+            ip = ipInfo.origip;
 
             // 创建新记录
-            const newRecordResponse = await axios.post('https://xn--7ovw36h.love/api/accountips', {
+            const newRecordResponse = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/accountips`, {
               data: {
                 ip: ip,
                 fingerprint: '登录邮箱验证成功,无浏览器指纹',
@@ -141,7 +159,7 @@ export default async function handler(req, res) {
                 ccid: uuidv4(),
                 country: ipInfo.country,
                 province: ipInfo.province,
-                city: ipInfo.city,
+                city: ipInfo.location,
                 response: '登录邮箱验证成功'
               }
             });

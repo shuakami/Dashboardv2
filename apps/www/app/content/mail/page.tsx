@@ -66,7 +66,7 @@ export default function MailPage() {
     const fetchUserDataAndPolicies = async () => {
       try {
         // 获取用户信息
-        const userInfoResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+        const userInfoResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
         const { id: userId, AgreedPrivacy, AgreedTerms } = userInfoResponse.data;
@@ -76,7 +76,7 @@ export default function MailPage() {
 
 
         // 获取最新的政策版本信息
-        const resContentsResponse = await axios.get('https://xn--7ovw36h.love/api/rescontents', {
+        const resContentsResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/rescontents`, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
         const [resContent] = resContentsResponse.data.data;
@@ -112,7 +112,7 @@ export default function MailPage() {
   const handlePrivacyAgreement = async () => {
     const jwt = Cookies.get('jwt');
     try {
-      await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`, {
 
         AgreedPrivacy: privacyversion
 
@@ -130,7 +130,7 @@ export default function MailPage() {
   const handleTermsAgreement = async () => {
     const jwt = Cookies.get('jwt');
     try {
-      await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`, {
         AgreedTerms: termsversion
       }, {
         headers: { Authorization: `Bearer ${jwt}` },
@@ -228,7 +228,7 @@ export default function MailPage() {
     const jwt = Cookies.get('jwt');
     if (jwt) {
       try {
-        const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
         Cookies.set('cookie-usersettings', JSON.stringify(data), { expires: 7 }); // 保存 7 天

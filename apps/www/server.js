@@ -22,7 +22,7 @@ async function fetchUsers() {
     const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
     const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-    const url = `https://xn--7ovw36h.love/api/users?filters[birthtime][$gte]=${startOfDay}&filters[birthtime][$lte]=${endOfDay}`;
+    const url = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users?filters[birthtime][$gte]=${startOfDay}&filters[birthtime][$lte]=${endOfDay}`;
     console.log('请求的URL:', url);  // 确认构造的URL是否正确
     const response = await axios.get(url);
     console.log('API返回的今日生日用户数据:', response.data); // 确认API返回的数据结构

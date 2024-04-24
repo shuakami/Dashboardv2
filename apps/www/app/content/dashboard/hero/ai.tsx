@@ -86,7 +86,7 @@ export const AITable: React.FC<AITableProps & { onEntryClick: (data: LogEntry) =
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('https://xn--7ovw36h.love/api/ailogs');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/ailogs`);
         // 对获取的数据进行排序和截取
         const sortedData = response.data.data.sort((a: { attributes: { updatedAt: string | number | Date; }; }, b: { attributes: { updatedAt: string | number | Date; }; }) => {
           // 将updatedAt转换为日期对象进行比较

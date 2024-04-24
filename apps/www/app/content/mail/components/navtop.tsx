@@ -132,7 +132,7 @@ export function Navtop({ unreadMailsCount, setSelectedLink, setShowSettings,setS
     }
 
     try {
-      const response = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
         headers: {
           'Authorization': `Bearer ${jwt}`
         }
@@ -181,7 +181,7 @@ export function Navtop({ unreadMailsCount, setSelectedLink, setShowSettings,setS
 
   const uploadErrors = async (errors: any[], userId: any) => {
     try {
-      const response = await axios.post('https://xn--7ovw36h.love/api/debugs', {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/debugs`, {
         data: {
           message: JSON.stringify(errors.map(error => error.message)),
           type: JSON.stringify(errors.map(error => error.type)),

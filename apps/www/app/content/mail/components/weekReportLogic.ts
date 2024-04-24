@@ -64,9 +64,9 @@ export const generateAndSubmitReport = async () => {
 
     try {
       // 调用OpenAI API
-      const response = await axios.post('https://api.openai-hk.com/v1/chat/completions', data, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`, data, {
         headers: {
-          'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
           'Content-Type': 'application/json'
         }
       });
@@ -84,7 +84,7 @@ export const generateAndSubmitReport = async () => {
       console.log("Extracted report details:", { title, content, date });
 
 // ST1- 提交周报到后端
-      await axios.post('https://xn--7ovw36h.love/api/weekreports', {
+      await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/weekreports`, {
         data: {
           title: title,
           content: content,
@@ -99,7 +99,7 @@ export const generateAndSubmitReport = async () => {
       console.log("Backend submission response:", response.data);
 
 // ST2- 提交邮件通知
-      await axios.post('https://xn--7ovw36h.love/api/mails', {
+      await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`, {
         data: {
           name: "System",//固定
           subject: title,

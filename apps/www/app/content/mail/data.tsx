@@ -42,7 +42,7 @@ export async function fetchMails(): Promise<Mail[]> {
   let pageCount = 1;
 
   while (page <= pageCount) {
-    const response = await axios.get(`https://xn--7ovw36h.love/api/mails`, {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`, {
       params: {
         pagination: { page, pageSize },
       },
@@ -71,7 +71,7 @@ export async function fetchMails(): Promise<Mail[]> {
 }
 
 export async function fetchAccounts(): Promise<Account[]> {
-  const response = await axios.get('https://xn--7ovw36h.love/api/accounts');
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/accounts`);
   return response.data.data.map((account: any) => ({
     label: account.attributes.label,
     email: account.attributes.email,
@@ -81,7 +81,7 @@ export async function fetchAccounts(): Promise<Account[]> {
 
 
 export async function fetchContacts(): Promise<Contact[]> {
-  const response = await axios.get('https://xn--7ovw36h.love/api/contacts');
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/contacts`);
   return response.data.data.map((contact: any) => ({
     name: contact.attributes.name,
     email: contact.attributes.email,

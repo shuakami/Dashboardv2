@@ -7,7 +7,7 @@ import axios from 'axios';
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
 setupAxiosInterceptors();
-const BASE_URL = 'https://xn--7ovw36h.love/api';
+const BASE_URL = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api`;
 
 export async function updateMailReadStatus(id: string, read: boolean, callback: (success: boolean) => void): Promise<void> {
   const url = `${BASE_URL}/mails/${id}`;

@@ -42,7 +42,7 @@ export const docsConfig: DocsConfig = {
           title: "测试版本",
           href: "/docs/update_beta",
           items: [],
-          label: "Res.1.0.0"
+          label: "Res.1.0.2"
         },
       ],
     },

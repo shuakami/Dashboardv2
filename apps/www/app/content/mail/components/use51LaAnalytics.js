@@ -24,7 +24,7 @@ export const use51laAndRecaptcha = () => {
       script51la.async = true;
 
       const init51laScript = document.createElement('script');
-      init51laScript.textContent = `LA.init({id:"3HelNpBlGrfK32c6",ck:"3HelNpBlGrfK32c6"});`;
+      init51laScript.textContent = `LA.init({id:"${process.env.NEXT_PUBLIC_LA_ID}",ck:"${process.env.NEXT_PUBLIC_LA_ID}"});`;
 
       script51la.onload = () => {
         if (!init51laScriptAdded) {
@@ -39,7 +39,7 @@ export const use51laAndRecaptcha = () => {
     // 仅在访问/login页面时，加载 reCAPTCHA v3 脚本
     if (isLoginPath && !document.getElementById('recaptcha_v3')) {
       const scriptRecaptcha = document.createElement('script');
-      scriptRecaptcha.src = 'https://recaptcha.net/recaptcha/api.js?render=6LcpUW4pAAAAAGMEM0quB2kUhtRpX5HWj9PolOcT';
+      scriptRecaptcha.src = `https://www.recaptcha.net/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_KEY}`;
       scriptRecaptcha.id = 'recaptcha_v3';
       scriptRecaptcha.async = true;
 
@@ -63,7 +63,7 @@ export const use51laAndRecaptcha = () => {
         _paq.push(['trackPageView']);
         _paq.push(['enableLinkTracking']);
         (function() {
-          var u="//analytics.sdjz.wiki/";
+          var u="//${process.env.NEXT_PUBLIC_MATOMO_URL}/";
           _paq.push(['setTrackerUrl', u+'matomo.php']);
           _paq.push(['setSiteId', '1']);
           var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];

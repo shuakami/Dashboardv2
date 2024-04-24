@@ -197,7 +197,7 @@ const decideIfNeedGPTAnalysis = async (initialStatuses: UptimeStatus[], visitsSu
       if (lastReminder) {
         // 如果有之前匹配的 cookie，表示该站点之前出现过故障
         // 现在站点恢复正常，需要更新 ailogs 的 solved 字段为 true
-        axios.put('https://xn--7ovw36h.love/api/ailogs', {
+        axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/ailogs`, {
           siteName: status.name,
           solved: true
         })
@@ -265,9 +265,9 @@ const requestGPTAnalysis = async (analysisReasons: string[], visitsSummary: any,
   };
 
   try {
-    const response = await axios.post('https://api.openai-hk.com/v1/chat/completions', data, {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`, data, {
       headers: {
-        'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
         'Content-Type': 'application/json'
       },
     });
@@ -329,7 +329,7 @@ const DataAnalysisComponent: React.FC<DataAnalysisComponentProps> = ({ onAnalysi
           };
 
 
-          await axios.post('https://xn--7ovw36h.love/api/ailogs', postData, {
+          await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/ailogs`, postData, {
             headers: {
               'Content-Type': 'application/json',
             },

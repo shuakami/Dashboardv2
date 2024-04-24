@@ -132,7 +132,7 @@ export function Mail({
     const checkAndGenerateReport = async () => {
       try {
         // 请求现有的周报数据
-        const response = await axios.get('https://xn--7ovw36h.love/api/weekreports');
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/weekreports`);
         const reports = response.data.data;
 
         // 寻找最新的报告日期

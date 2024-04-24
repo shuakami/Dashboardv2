@@ -73,8 +73,8 @@ const CustomMailText = ({ text, date }: { text: string; date: string }) => {
 
   // 根据isDark状态选择图片源
   const imageUrl = isDark
-    ? "https://xn--7ovw36h.love/uploads/dark_bg_data_18931fc718.png"
-    : "https://xn--7ovw36h.love/uploads/light_bg_data_ca0ff08d92.png";
+    ? "${process.env.NEXT_PUBLIC_STRAPI_URL}/uploads/dark_bg_data_18931fc718.png"
+    : "${process.env.NEXT_PUBLIC_STRAPI_URL}/uploads/light_bg_data_ca0ff08d92.png";
 
   // 初始化一个变量来收集非数据段的文本
   const analysisTexts: any[] = [];

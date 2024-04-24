@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
   try {
     // 使用JWT获取用户信息
-    const userResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+    const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
       headers: {
         Authorization: authHeader,
       },
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const username = userResponse.data.username;
 
     // 使用username获取accountips记录
-    const recordsResponse = await axios.get('https://xn--7ovw36h.love/api/accountips', {
+    const recordsResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/accountips`, {
       params: {
         filters: {
           user: { $eq: username },

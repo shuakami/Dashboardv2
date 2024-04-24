@@ -221,7 +221,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     formData.append('files', file); // 添加文件
 
     try {
-      const response = await fetch('https://xn--7ovw36h.love/api/upload', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -236,7 +236,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
       // 更新状态以保存URL
       // @ts-ignore
-      setUploadedFileURLs(prevUrls => [...prevUrls, `https://xn--7ovw36h.love${uploadedUrl}`]);
+      setUploadedFileURLs(prevUrls => [...prevUrls, `${process.env.NEXT_PUBLIC_STRAPI_URL}${uploadedUrl}`]);
 
       // 上传成功
       toast({
@@ -460,9 +460,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       return;
     }
 
-    const url = 'https://api.openai-hk.com/v1/chat/completions';
+    const url = `${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`;
     const headers = {
-      'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
       'Content-Type': 'application/json'
     };
 
@@ -743,7 +743,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
    //  console.log("发送的邮件数据:", JSON.stringify(postData, null, 2));
 
     try {
-      const response = await axios.post('https://xn--7ovw36h.love/api/mails', postData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/mails`, postData, {
         headers: {
           'Content-Type': 'application/json',
         }

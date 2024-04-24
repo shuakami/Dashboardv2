@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     // 使用JWT从Strapi获取用户信息
-    const response = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
       expires_at: new Date(new Date().getTime() + 10*60000), // 10分钟后过期
     };
 
-    await axios.post('https://xn--7ovw36h.love/api/verification-codes', {
+    await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/verification-codes`, {
       data: verificationCodeRecord,
     }, {
       headers: {

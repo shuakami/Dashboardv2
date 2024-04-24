@@ -7,7 +7,7 @@ import axios from 'axios';
 import { setupAxiosInterceptors } from '@/app/setupAxiosInterceptors';
 
 setupAxiosInterceptors();
-const BASE_URL = 'https://xn--7ovw36h.love/api';
+const BASE_URL = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api`;
 
 // 更新archiveMail函数以接受一个额外的参数，用于指明是要归档还是取消归档
 export async function archiveMail(id: string, archive: boolean, callback: (success: boolean) => void): Promise<void> {

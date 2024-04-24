@@ -26,9 +26,9 @@ export const sendToAPI = async (id: any, description: any) => {
       ]
     };
 
-    const response = await axios.post('https://api.openai-hk.com/v1/chat/completions', data, {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`, data, {
       headers: {
-        'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
         'Content-Type': 'application/json'
       }
     });
@@ -112,9 +112,9 @@ export const sendToAPI = async (id: any, description: any) => {
 
 
 
-    const actionResponseFromGPT = await axios.post('https://api.openai-hk.com/v1/chat/completions', actionData, {
+    const actionResponseFromGPT = await axios.post(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`, actionData, {
       headers: {
-        'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
         'Content-Type': 'application/json'
       }
     });

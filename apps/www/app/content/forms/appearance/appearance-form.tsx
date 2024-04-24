@@ -193,7 +193,7 @@ export function SettingsForm() {
       const jwt = Cookies.get('jwt');
       if (jwt) {
         try {
-          const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+          const { data } = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
             headers: { Authorization: `Bearer ${jwt}` },
           });
           setUserId(data.id.toString());
@@ -242,7 +242,7 @@ export function SettingsForm() {
     const jwt = Cookies.get('jwt');
     if (jwt && userId) {
       try {
-        await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, data, {
+        await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`, data, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
         toast({ title: "Settings updated successfully" ,

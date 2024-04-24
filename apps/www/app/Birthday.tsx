@@ -33,7 +33,7 @@ function BirthdayChecker() {
       }
 
       try {
-        const userInfoResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+        const userInfoResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
         const { id: userId } = userInfoResponse.data;

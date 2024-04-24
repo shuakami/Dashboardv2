@@ -28,14 +28,14 @@ const useVerifyUserAgreement = (jwt) => {
 
     const verifyAgreements = async () => {
       try {
-        const userInfoResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+        const userInfoResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
           headers: {
             'Authorization': `Bearer ${jwt}`
           }
         });
 
         const { AgreedPrivacy, AgreedTerms } = userInfoResponse.data;
-        const resContentsResponse = await axios.get('https://xn--7ovw36h.love/api/rescontents', {
+        const resContentsResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/rescontents`, {
           headers: {
             'Authorization': `Bearer ${jwt}`
           }

@@ -72,7 +72,7 @@ export function AccountForm() {
       const jwt = Cookies.get('jwt');
       if (jwt) {
         try {
-          const { data } = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+          const { data } = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
             headers: {
               Authorization: `Bearer ${jwt}`,
             },
@@ -128,7 +128,7 @@ export function AccountForm() {
 
         console.log("Submitting data:", submitData);
 
-        const response = await axios.put(`https://xn--7ovw36h.love/api/users/${userId}`, submitData, {
+        const response = await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`, submitData, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },

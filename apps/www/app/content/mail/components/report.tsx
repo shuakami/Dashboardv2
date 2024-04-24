@@ -96,7 +96,7 @@ export function ReportDrawer({ mail, open, onClose }) {
     };
 
     try {
-      const response = await axios.post(`https://xn--7ovw36h.love/api/reports`, data);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/reports`, data);
       console.log("API Response:", response.data);
     } catch (error) {
       console.error("Error sending report result to API:", error);
@@ -108,7 +108,7 @@ export function ReportDrawer({ mail, open, onClose }) {
   const loadReportResult = async (mail: Mail) => {
     const uniqueKey = generateUniqueKeyForMail(mail);
     try {
-      const response = await axios.get(`https://xn--7ovw36h.love/api/reports`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/reports`, {
         params: {
           "filter[reportId]": uniqueKey
         }
@@ -502,9 +502,9 @@ export function ReportDrawer({ mail, open, onClose }) {
 }
 
 async function generateLabels(text: string): Promise<string> {
-  const url = 'https://api.openai-hk.com/v1/chat/completions';
+  const url = `${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`;
   const headers = {
-    'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
     'Content-Type': 'application/json'
   };
 

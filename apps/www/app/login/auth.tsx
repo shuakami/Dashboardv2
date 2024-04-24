@@ -239,7 +239,7 @@ export const verifyDynamicCode = async (token: string, password: string) => {
 
   try {
     // 尝试进行登录
-    const authRes = await axios.post('https://xn--7ovw36h.love/api/auth/local', {
+    const authRes = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/auth/local`, {
       identifier: token,
       password,
     });

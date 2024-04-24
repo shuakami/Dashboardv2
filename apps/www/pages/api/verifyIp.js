@@ -7,6 +7,15 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 export default async function handler(req, res) {
+  // 获取用户的真实 IP 地址
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (ip.substr(0, 7) === "::ffff:") {
+    ip = ip.substr(7);
+  }
+  if (ip.startsWith("10.") || ip.startsWith("192.168.") || ip === "127.0.0.1" ||
+    ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip === "::1" || ip.startsWith("fc00:") || ip.startsWith("fd00:")) {
+    ip = "1.1.1.1";  // 使用 Cloudflare 的公开 DNS 服务器 IP 作为示例
+  }
 
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // 提取JWT
@@ -15,7 +24,7 @@ export default async function handler(req, res) {
   let promptSystem;
   try {
     // 使用JWT获取用户信息
-    const userResponse = await axios.get('https://xn--7ovw36h.love/api/users/me', {
+    const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -62,20 +71,20 @@ export default async function handler(req, res) {
   const {fingerprint} = req.body;
   console.log(`收到的用户名(token): ${username}, 浏览器指纹: ${fingerprint}`);
 
-  let ip;
+
 
   const createNewRecord = async (ipInfo, username, fingerprint, response) => {
     try {
-      const newRecordResponse = await axios.post('https://xn--7ovw36h.love/api/accountips', {
+      const newRecordResponse = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/accountips`, {
         data: {
-          ip: ipInfo.ip,
+          ip: ipInfo.origip,
           fingerprint: fingerprint,
           date: new Date().toISOString(),
           user: username,
           ccid: uuidv4(),
           country: ipInfo.country,
           province: ipInfo.province,
-          city: ipInfo.city,
+          city: ipInfo.location,
           response: response
         }
       });
@@ -90,30 +99,22 @@ export default async function handler(req, res) {
     }
   };
 
-  try {
-    console.log('检测到本地回环地址, 使用外部API查询公网IP');
-    const publicIpResponse = await axios.get('https://ip.useragentinfo.com/jsonp');
-    const publicIpMatch = publicIpResponse.data.match(/callback\((.*)\);?/);
-    if (publicIpMatch && publicIpMatch.length >= 2) {
-      const publicIpInfo = JSON.parse(publicIpMatch[1]);
-      if (publicIpInfo.code === 200 && publicIpInfo.ip) {
-        ip = publicIpInfo.ip;
-        console.log(`获取到的公网IP地址: ${ip}`);
-      }
-    }
 
-    const ipInfoResponse = await axios.get(`https://ip.useragentinfo.com/jsonp?&ip=${ip}`);
-    const match = ipInfoResponse.data.match(/callback\((.*)\);?/);
-    if (!match || match.length < 2) throw new Error('无法解析IP信息');
 
-    const ipInfo = JSON.parse(match[1]);
-    if (ipInfo.code !== 200) throw new Error('IP信息查询失败');
-    console.log(`解析到的IP信息: ${JSON.stringify(ipInfo)}`);
+  const ipInfoResponse = await axios.get(`https://opendata.baidu.com/api.php?query=${ip}&co=&resource_id=6006&oe=utf8`);
+
+  const ipInfo = ipInfoResponse.data.data[0];
+  console.log(`解析到的IP信息: ${JSON.stringify(ipInfoResponse.data)}`);
+  if (ipInfoResponse.data.status !== '0') {
+    console.error('IP信息查询失败', ipInfoResponse.data);
+    throw new Error('IP信息查询失败');
+  }
+
 
     const getLatestRecords = async (username) => {
 
       try {
-        const response = await axios.get('https://xn--7ovw36h.love/api/accountips', {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/accountips`, {
           params: {
             filters: {
               user: {$eq: username} // 根据Strapi的过滤语法
@@ -127,7 +128,7 @@ export default async function handler(req, res) {
 
         // 确保我们正确地处理了响应数据
         if (response.data && response.data.data) {
-          return response.data.data; // 返回获取到的数据
+          return response.data.data.map(item => item.attributes);  // 返回获取到的数据
         } else {
           return []; // 如果没有数据或数据格式不符，返回空数组
         }
@@ -140,12 +141,17 @@ export default async function handler(req, res) {
 
     const latestRecords = await getLatestRecords(username); // 获取最新的记录，可能是0, 1, 或2条
 
+    const latestRecordsStr = latestRecords.map(record => {
+    return `ip: ${record.ip}, date: ${record.date}, fingerprint: ${record.fingerprint || '无'}, province: ${record.province || '无'}, response: ${record.response}, city: ${record.city || '无'}`;
+  }).join(", ");  // 将多条记录以逗号分隔
+
+    const ipInfoStr = `location: ${ipInfo.location}, origip: ${ipInfo.origip}, origipquery: ${ipInfo.origipquery}`;
 
 // 构建用户提示
-    const promptUser = `请基于以下信息做出决策：\n
-- 当前尝试信息：${JSON.stringify(ipInfo, null, 2)},浏览器指纹${fingerprint}
-- 最近登录记录：${latestRecords.length > 0 ? JSON.stringify(latestRecords, null, 2) : '无历史记录，请直接给过，因为这是新用户'}\n
-  请根据这些信息，判断此次登录是否安全，并简洁明了地给出判断和原因，格式为：“[允许/不允许登录]|[给用户看的原因]”。`;
+  const promptUser = `请基于以下信息做出决策：` +
+    `- 当前尝试信息：${ipInfoStr}, 浏览器指纹：${fingerprint}。` +
+    `- 最近登录记录：${latestRecords.length > 0 ? latestRecordsStr : '无历史记录，请直接给过，因为这是新用户'}。` +
+    `- 请根据这些信息，判断此次登录是否安全，并简洁明了地给出判断和原因，格式为：“[允许/不允许登录]|[给用户看的原因]”。`;
 
     const data = {
       model: 'gpt-3.5-turbo',
@@ -166,9 +172,9 @@ export default async function handler(req, res) {
 
     let aiResponse;
     try {
-      const response = await axios.post('https://api.openai-hk.com/v1/chat/completions', data, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/chat/completions`, data, {
         headers: {
-          'Authorization': 'Bearer hk-8d4a581000010138775b1a58955c02d8bf41e2fa3bab3291',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
           'Content-Type': 'application/json'
         },
       });
@@ -202,10 +208,7 @@ export default async function handler(req, res) {
 
 
 
-  } catch (error) {
-    console.error('Error during IP and fingerprint processing:', error);
-    res.status(500).json({message: 'Internal Server Error'});
-  }
+
 }
 
 
