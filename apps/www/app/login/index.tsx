@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2023-2024 ByteFreezeLab×Sdjz.Wiki. All rights reserved.
- * This project is strictly confidential and proprietary to the owner. It is not open-sourced and is not available for public use, distribution, or modification in any form. Unauthorized use, distribution, reproduction, or any other form of exploitation is strictly prohibited.
+ * 严禁任何形式的未经许可的商业使用和倒卖行为。
+ * This project is open-sourced under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) License and is available on Github: https://github.com/shuakami/Dashboardv2. Unauthorized commercial use and reselling are strictly prohibited.
+ * As the copyright notice is applied globally, it might be included in some files that are not owned by me. In such cases, the copyright belongs to the original author.
  */
 
 import { CardTitle, CardDescription, CardHeader, CardContent, Card } from "@/registry/new-york/ui/card";
@@ -318,12 +320,15 @@ export default function LoginPage({ fromHome, onClose }: LoginPageProps) {
       console.error('JWT not found');
       return;
     }
+    message.warning('别急，需要等一会');
 
     try {
       const response = await axios.post('/api/verifyCode', {
         jwt,
         code: verificationCode,
       });
+
+
       if (response.data.message === '验证码验证成功') {
         Cookies.set('jwt', jwt);
         console.log('验证码验证成功');

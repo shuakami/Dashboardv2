@@ -39,9 +39,7 @@ Dashboardv2 是最开始我纯粹拿来练手的控制台项目。目前已经�
 
 ## 安装指南
 
-------
-
-## 见 [https://blog.sdjz.wiki/dashboard_install.html](https://blog.sdjz.wiki/dashboard_install.html)
+ 见 [https://blog.sdjz.wiki/dashboard_install.html](https://blog.sdjz.wiki/dashboard_install.html)
 
 ## 文件性概览
 
@@ -51,34 +49,31 @@ Dashboardv2 是最开始我纯粹拿来练手的控制台项目。目前已经�
 
 ## 技术栈
 
-[`Shadcn/UI`](https://github.com/shadcn/ui)
+ [`Shadcn/UI`](https://github.com/shadcn/ui)
  [`autoprefixer`](https://github.com/postcss/autoprefixer)
  [`postcss`](https://github.com/postcss/postcss)
  [`@heroicons/react`](https://github.com/tailwindlabs/heroicons)
  [`lucide-react`](https://github.com/lucide-icons/lucide)
  [`framer-motion`](https://github.com/framer/motion)
-
-[`@ant-design/nextjs-registry`](https://github.com/ant-design/ant-design)
-[`@nextui-org/react`](https://github.com/nextui-org/nextui)
-[`antd`](https://github.com/ant-design/ant-design)
-[`react-confetti`](https://github.com/daniel-lundin/react-confetti)
-[`react-markdown`](https://github.com/remarkjs/react-markdown)
-[`react-chartjs-2`](https://github.com/reactchartjs/react-chartjs-2)
-[`react-player`](https://github.com/CookPete/react-player)
-[`react-spring`](https://github.com/pmndrs/react-spring)
-[`react-transition-group`](https://github.com/reactjs/react-transition-group)
-[`styled-components`](https://github.com/styled-components/styled-components)
-[`tailwindcss`](https://github.com/tailwindlabs/tailwindcss)
-[`tailwindcss-animate`](https://github.com/mahdikhashan/tailwindcss-animate)
-[`tailwind-scrollbar`](https://github.com/akameco/tailwind-scrollbar-hide)
-
+ [`@ant-design/nextjs-registry`](https://github.com/ant-design/ant-design)
+ [`@nextui-org/react`](https://github.com/nextui-org/nextui)
+ [`antd`](https://github.com/ant-design/ant-design)
+ [`react-confetti`](https://github.com/daniel-lundin/react-confetti)
+ [`react-markdown`](https://github.com/remarkjs/react-markdown)
+ [`react-chartjs-2`](https://github.com/reactchartjs/react-chartjs-2)
+ [`react-player`](https://github.com/CookPete/react-player)
+ [`react-spring`](https://github.com/pmndrs/react-spring)
+ [`react-transition-group`](https://github.com/reactjs/react-transition-group)
+ [`styled-components`](https://github.com/styled-components/styled-components)
+ [`tailwindcss`](https://github.com/tailwindlabs/tailwindcss)
+ [`tailwindcss-animate`](https://github.com/mahdikhashan/tailwindcss-animate)
+ [`tailwind-scrollbar`](https://github.com/akameco/tailwind-scrollbar-hide)
  [`@mdx-js/loader`](https://github.com/mdx-js/mdx)
  [`@mdx-js/react`](https://github.com/mdx-js/mdx)
  [`@mdx-js/runtime`](https://github.com/mdx-js/mdx)
  [`@next/mdx`](https://github.com/vercel/next.js/tree/canary/packages/next-mdx-remote)
  [`next-mdx-remote`](https://github.com/hashicorp/next-mdx-remote)
  [`rehype-raw`](https://github.com/rehypejs/rehype-raw)
-
  [`axios`](https://github.com/axios/axios)
  [`lodash`](https://github.com/lodash/lodash)
  [`lodash.debounce`](https://github.com/lodash/lodash)
@@ -96,9 +91,7 @@ Dashboardv2 是最开始我纯粹拿来练手的控制台项目。目前已经�
  [`detect-language`](https://github.com/dachev/node-detect-language)
  [`vitest`](https://github.com/vitest-dev/vitest)
  [`husky`](https://github.com/typicode/husky)
-
  [`next-i18next`](https://github.com/isaachinman/next-i18next)
-
  [`d3`](https://github.com/d3/d3)
  [`d3-array`](https://github.com/d3/d3-array)
  [`d3-axis`](https://github.com/d3/d3-axis)
@@ -108,12 +101,9 @@ Dashboardv2 是最开始我纯粹拿来练手的控制台项目。目前已经�
  [`d3-time-format`](https://github.com/d3/d3-time-format)
  [`chart.js`](https://github.com/chartjs/Chart.js)
  [`@nivo/line`](https://github.com/plouc/nivo)
-
  [`crypto-js`](https://github.com/brix/crypto-js)
  [`jwt-decode`](https://github.com/auth0/jwt-decode)
  [`js-cookie`](https://github.com/js-cookie/js-cookie)
-
-
  [`@babel/core`](https://github.com/babel/babel)
  [`@typescript-eslint/parser`](https://github.com/typescript-eslint/typescript-eslint)
  [`eslint`](https://github.com/eslint/eslint)
