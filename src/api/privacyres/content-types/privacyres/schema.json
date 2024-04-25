@@ -1,0 +1,22 @@
+{
+  "kind": "collectionType",
+  "collectionName": "privacyress",
+  "info": {
+    "singularName": "privacyres",
+    "pluralName": "privacyress",
+    "displayName": "privacyres",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "privacyversion": {
+      "type": "string"
+    },
+    "termsversion": {
+      "type": "string"
+    }
+  }
+}

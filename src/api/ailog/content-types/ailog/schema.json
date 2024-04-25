@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ailogs",
+  "info": {
+    "singularName": "ailog",
+    "pluralName": "ailogs",
+    "displayName": "ailog",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "gptResponse": {
+      "type": "string"
+    },
+    "siteName": {
+      "type": "string"
+    },
+    "visitsSummary": {
+      "type": "string"
+    },
+    "liveCounters": {
+      "type": "string"
+    },
+    "averageUptime": {
+      "type": "string"
+    },
+    "lastUptimeDate": {
+      "type": "string"
+    },
+    "daysSinceLastUptime": {
+      "type": "string"
+    },
+    "lastDowntimeDate": {
+      "type": "string"
+    },
+    "daysSinceLastDowntime": {
+      "type": "string"
+    },
+    "solved": {
+      "type": "string"
+    }
+  }
+}

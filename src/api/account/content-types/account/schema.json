@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "accounts",
+  "info": {
+    "singularName": "account",
+    "pluralName": "accounts",
+    "displayName": "accounts",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "icon": {
+      "type": "text"
+    },
+    "AnonymousBrowser": {
+      "type": "string"
+    },
+    "birthtime": {
+      "type": "datetime"
+    },
+    "Language": {
+      "type": "string"
+    },
+    "font": {
+      "type": "string"
+    },
+    "Theme": {
+      "type": "string"
+    },
+    "backgroundtransparency": {
+      "type": "string"
+    },
+    "background": {
+      "type": "string",
+      "default": "default"
+    }
+  }
+}

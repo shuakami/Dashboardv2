@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reports",
+  "info": {
+    "singularName": "report",
+    "pluralName": "reports",
+    "displayName": "report"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "reportId": {
+      "type": "string",
+      "required": true
+    },
+    "mailId": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "sender": {
+      "type": "email"
+    },
+    "date": {
+      "type": "datetime"
+    },
+    "reportedAt": {
+      "type": "datetime"
+    },
+    "resultMessage": {
+      "type": "string",
+      "required": true
+    },
+    "penaltyDuration": {
+      "type": "string",
+      "required": false
+    },
+    "penaltyReason": {
+      "type": "string",
+      "required": false
+    },
+    "evaluatedAt": {
+      "type": "datetime"
+    },
+    "manualReviewComments": {
+      "type": "string"
+    },
+    "manualReviewpenaltyDuration": {
+      "type": "string"
+    },
+    "manualpenaltyReason": {
+      "type": "string"
+    }
+  }
+}

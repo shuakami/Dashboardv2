@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "debugs",
+  "info": {
+    "singularName": "debug",
+    "pluralName": "debugs",
+    "displayName": "debug",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "message": {
+      "type": "json"
+    },
+    "type": {
+      "type": "json"
+    },
+    "timestamp": {
+      "type": "json"
+    },
+    "userid": {
+      "type": "string"
+    }
+  }
+}

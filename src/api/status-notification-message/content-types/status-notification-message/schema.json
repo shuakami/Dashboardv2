@@ -1,0 +1,75 @@
+{
+  "kind": "collectionType",
+  "collectionName": "status_notification_messages",
+  "info": {
+    "singularName": "status-notification-message",
+    "pluralName": "status-notification-messages",
+    "displayName": "statusmessage",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Title": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "richtext",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Draft",
+        "Pending Review",
+        "Published",
+        "Revoked"
+      ],
+      "default": "Published"
+    },
+    "sendDate": {
+      "type": "datetime",
+      "unique": true,
+      "required": true
+    },
+    "sentby": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "admin::user"
+    },
+    "targetAudience": {
+      "type": "enumeration",
+      "enum": [
+        "yangyue",
+        "home",
+        "status",
+        "docs",
+        "blog",
+        "puikey",
+        "api",
+        "dashboard"
+      ],
+      "required": true
+    },
+    "attachment": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "notification_uid": {
+      "type": "customField",
+      "regex": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "required": true,
+      "customField": "plugin::field-uuid.uuid"
+    }
+  }
+}

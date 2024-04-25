@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mails",
+  "info": {
+    "singularName": "mail",
+    "pluralName": "mails",
+    "displayName": "mails",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 30
+    },
+    "subject": {
+      "type": "string",
+      "required": true,
+      "maxLength": 30
+    },
+    "text": {
+      "type": "text",
+      "required": true
+    },
+    "date": {
+      "type": "datetime",
+      "unique": true
+    },
+    "labels": {
+      "type": "string",
+      "maxLength": 90
+    },
+    "CCID": {
+      "type": "string",
+      "unique": true,
+      "maxLength": 40
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "archive": {
+      "type": "string"
+    },
+    "read": {
+      "type": "string",
+      "default": "false"
+    }
+  }
+}

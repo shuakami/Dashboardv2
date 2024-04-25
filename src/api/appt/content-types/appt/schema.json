@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "appts",
+  "info": {
+    "singularName": "appt",
+    "pluralName": "appts",
+    "displayName": "appt"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "worktime": {
+      "type": "string"
+    },
+    "AlreadyAppt": {
+      "type": "string"
+    },
+    "schedule": {
+      "type": "string"
+    }
+  }
+}

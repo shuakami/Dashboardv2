@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rescontents",
+  "info": {
+    "singularName": "rescontent",
+    "pluralName": "rescontents",
+    "displayName": "rescontent",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "privacyversion": {
+      "type": "string"
+    },
+    "termsversion": {
+      "type": "string"
+    },
+    "termscontent": {
+      "type": "text"
+    },
+    "privacycontent": {
+      "type": "text"
+    }
+  }
+}

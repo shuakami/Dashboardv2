@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "weekreports",
+  "info": {
+    "singularName": "weekreport",
+    "pluralName": "weekreports",
+    "displayName": "weekreport"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "text"
+    },
+    "date": {
+      "type": "string"
+    }
+  }
+}

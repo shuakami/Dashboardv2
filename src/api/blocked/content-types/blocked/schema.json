@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "blockeds",
+  "info": {
+    "singularName": "blocked",
+    "pluralName": "blockeds",
+    "displayName": "Blocked"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "string",
+      "required": false
+    },
+    "BlockedReason": {
+      "type": "text"
+    },
+    "BlockedTime": {
+      "type": "string"
+    }
+  }
+}

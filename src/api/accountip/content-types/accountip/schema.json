@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "accountips",
+  "info": {
+    "singularName": "accountip",
+    "pluralName": "accountips",
+    "displayName": "accountip",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "ip": {
+      "type": "string",
+      "required": true
+    },
+    "date": {
+      "type": "datetime",
+      "required": false,
+      "unique": true
+    },
+    "user": {
+      "type": "string"
+    },
+    "ccid": {
+      "type": "string",
+      "unique": true
+    },
+    "fingerprint": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "province": {
+      "type": "string"
+    },
+    "response": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    }
+  }
+}
