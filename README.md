@@ -6,8 +6,8 @@
 cnpm install
 ```
 ```bash
-cnpm build
+cnpm run build
 ```
 ```bash
-cnpm develop
+cnpm run develop
 ```
